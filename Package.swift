@@ -19,6 +19,7 @@ import PackageDescription
 
 let package = Package(
     name: "nimbella-sdk",
+    platforms: [.iOS("13.0")], // Doesn't typically run on iOS but this avoids some Swift error messages
     products: [
         .library(name: "nimbella-sdk", targets: ["nimbella-sdk"])
     ],
