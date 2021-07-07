@@ -15,7 +15,7 @@
  */
 
 import Foundation
-import Combine
+import NIO
 
 // Model the StorageKey type that is to be stored in the credential store.  Only the 'provider' member has
 // specified semantics.  The rest is at the convenience of the provider.
@@ -96,19 +96,19 @@ public protocol RemoteFile {
     // The name of the file
     var name: String { get }
     // Save data into the file
-    func save(data: Data, options: SaveOptions) -> Future<Void, Error>
+    func save(data: Data, options: SaveOptions) -> EventLoopFuture<Void>
     // Set the file metadata
-    func setMetadata(meta: SettableFileMetadata) -> Future<Void, Error>
+    func setMetadata(meta: SettableFileMetadata) -> EventLoopFuture<Void>
     // Get the file metadata
-    func getMetadata() -> Future<FileMetadata, Error>
+    func getMetadata() -> EventLoopFuture<FileMetadata>
     // Test whether file exists
-    func exists() -> Future<Bool, Error>
+    func exists() -> EventLoopFuture<Bool>
     // Delete the file
-    func delete() -> Future<Void, Error>
+    func delete() -> EventLoopFuture<Void>
     // Obtain the contents of the file
-    func download(options: DownloadOptions?) -> Future<Data, Error>
+    func download(options: DownloadOptions?) -> EventLoopFuture<Data>
     // Get a signed URL to the file
-    func getSignedUrl(options: SignedUrlOptions) -> Future<String, Error>
+    func getSignedUrl(options: SignedUrlOptions) -> EventLoopFuture<String>
     // Get the underlying implementation for provider-dependent operations
     func getImplementation() -> AnyObject
 }
@@ -118,15 +118,15 @@ public protocol StorageClient {
     // Get the root URL if the client is for web storage (return falsey for data storage)
     func getURL() -> String
     // Set website information
-    func setWebsite(website: WebsiteOptions) -> Future<Void, Error>
+    func setWebsite(website: WebsiteOptions) -> EventLoopFuture<Void>
     // Delete files from the store
-    func deleteFiles(options: DeleteFilesOptions?) -> Future<Void, Error>
+    func deleteFiles(options: DeleteFilesOptions?) -> EventLoopFuture<Void>
     // Add a local file (specified by path)
-    func upload(path: String, options: UploadOptions?) -> Future<Void, Error>
+    func upload(path: String, options: UploadOptions?) -> EventLoopFuture<Void>
     // Obtain a file handle in the store.  The file may or may not exist
     func file(destination: String) -> RemoteFile
     // Get files from the store
-    func getFiles(options: GetFilesOptions?) -> Future<[RemoteFile], Error>
+    func getFiles(options: GetFilesOptions?) -> EventLoopFuture<[RemoteFile]>
     // Get the underlying implementation for provider-dependent operations
     func getImplementation() -> AnyObject
 }

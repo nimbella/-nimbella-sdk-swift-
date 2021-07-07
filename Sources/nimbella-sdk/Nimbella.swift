@@ -20,17 +20,17 @@
 import RediStack
 
 // Errors that can occur.
-enum NimbellaError : Error {
+public enum NimbellaError : Error {
     case notImplemented
     // TODO
 }
 
 // Retrieve a redis client handle
-public func redis() throws -> RedisConnection {
+public func redis() throws -> RedisClient {
     throw NimbellaError.notImplemented
 }
 
-// Retrieve a storageClient handlel
+// Retrieve a storageClient handle
 public func storageClient(_ web: Bool) throws -> StorageClient {
     throw NimbellaError.notImplemented
 }
