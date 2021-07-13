@@ -18,16 +18,33 @@
 // functions as in other SDKs.
 
 import RediStack
+import Foundation
+import NIO
 
 // Errors that can occur.
 public enum NimbellaError : Error {
     case notImplemented
-    // TODO
+    case noKeyValueStore
+    // TODO add storage related errors
 }
 
 // Retrieve a redis client handle
 public func redis() throws -> RedisClient {
-    throw NimbellaError.notImplemented
+    let env = ProcessInfo.processInfo.environment
+    let redisHost = env["__NIM_REDIS_IP"]
+    if redisHost == nil || redisHost?.count == 0 {
+        throw NimbellaError.noKeyValueStore
+    }
+    let redisPassword = env["__NIM_REDIS_PASSWORD"]
+    if (redisPassword == nil || redisPassword?.count == 0) {
+        throw NimbellaError.noKeyValueStore
+    }
+    let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    let eventLoop = eventLoopGroup.next()
+    let client = try RedisConnection.make(
+        configuration: try .init(hostname: redisHost!, port: 6379, password: redisPassword),
+        boundEventLoop: eventLoop).wait()
+    return client
 }
 
 // Retrieve a storageClient handle
