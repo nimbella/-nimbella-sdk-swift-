@@ -24,11 +24,11 @@ let package = Package(
         .library(name: "nimbella-sdk", targets: ["nimbella-sdk"])
     ],
     dependencies: [
-        .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master"))
-        // storage client dependencies to be added later
+        .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
+        .package(url: "https://github.com/swiftpackages/DotEnv.git", from: "2.0.0")
     ],
     targets: [
         .target(name: "nimbella-sdk", dependencies: ["RediStack"]),
-        .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-sdk"])
+        .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-sdk", "DotEnv"])
     ]
 )

@@ -17,12 +17,6 @@
 import Foundation
 import NIO
 
-// Model the StorageKey type that is to be stored in the credential store.  Only the 'provider' member has
-// specified semantics.  The rest is at the convenience of the provider.
-public protocol StorageKey {
-    var provider: String? { get }
-}
-
 // Metadata that can be set on a file
 public protocol SettableFileMetadata {
     var contentType: String? { get set }
@@ -134,12 +128,17 @@ public protocol StorageClient {
 // The top-level signature of a storage provider
 public protocol StorageProvider {
     // Provide the appropriate client handle for accessing a type file store (web or data) in a particular namespace
-    func getClient(namespace: String, apiHost: String, web: Bool, credentials: StorageKey) -> StorageClient
+    func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary) -> StorageClient
     // Convert an object containing credentials as stored in couchdb into the proper form for the credential store
     // Except for GCS, which is grandfathered as the default, the result must include a 'provider' field denoting
     // a valid npm-installable package
-    func prepareCredentials(original: AnyObject) -> StorageKey
+    func prepareCredentials(_ original: NSDictionary) -> NSDictionary
     // Unique identifier for this storage provider, e.g. @nimbella/storage-provider.
     // Used by factory function to perform dynamic lookups for provider impl at runtime.
     var identifier: String { get }
+}
+
+// Obtain the storage provide for a given provider string
+public func getStorageProvider(_ provider: String) throws -> StorageProvider {
+    throw NimbellaError.notImplemented
 }
