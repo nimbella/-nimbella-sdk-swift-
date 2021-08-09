@@ -28,6 +28,12 @@ public enum NimbellaError : Error, Equatable {
     case noObjectStoreCredentials
     case corruptObjectStoreCredentials(String)
     case insufficientEnvironment
+    case noValidURL
+    case insufficientCredentials
+    case notDeleted(String)
+    case multiple([NimbellaError])
+    case incorrectInput(String)
+    case couldNotOpen(String)
 }
 
 // Retrieve a redis client handle
@@ -63,6 +69,6 @@ public func storageClient(_ web: Bool) throws -> StorageClient {
     }
     let provider = parsedCreds["provider"] as? String ?? "@nimbella/storage-gcs"
     let providerImpl = try getStorageProvider(provider)
-    let creds = providerImpl.prepareCredentials(parsedCreds)
-    return providerImpl.getClient(namespace, apiHost, web, creds)
+    let creds = try providerImpl.prepareCredentials(parsedCreds)
+    return try providerImpl.getClient(namespace, apiHost, web, creds)
 }

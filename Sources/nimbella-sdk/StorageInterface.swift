@@ -18,37 +18,37 @@ import Foundation
 import NIO
 
 // Metadata that can be set on a file
-public protocol SettableFileMetadata {
-    var contentType: String? { get set }
-    var cacheControl: String? { get set }
+public struct SettableFileMetadata {
+    var contentType: String?
+    var cacheControl: String?
 }
 
 // Options that may be passed to deleteFiles
-public protocol DeleteFilesOptions {
-    var force: Bool? { get set }
-    var prefix: String? { get set }
+public struct DeleteFilesOptions {
+    var force: Bool?
+    var prefix: String?
 }
 
 // Options that may be passed to upload
-public protocol UploadOptions {
-    var destination: String? { get set }
-    var gzip: Bool? { get set }
-    var metadata: SettableFileMetadata? { get set }
+public struct UploadOptions {
+    var destination: String?
+    var gzip: Bool?
+    var metadata: SettableFileMetadata?
 }
 
 // Options that may be passed to getFiles
-public protocol GetFilesOptions {
-    var prefix: String? { get set }
+public struct GetFilesOptions {
+    var prefix: String?
 }
 
 // Options that may be passed to save
-public protocol SaveOptions {
-    var metadata: SettableFileMetadata? { get set }
+public struct SaveOptions {
+    var metadata: SettableFileMetadata?
 }
 
 // Options that may be passed to download
-public protocol DownloadOptions {
-    var destination: String? { get set }
+public struct DownloadOptions {
+    var destination: String?
 }
 
 // Types used with signed URLs
@@ -63,26 +63,26 @@ public enum SignedUrlAction: String {
 }
 
 // Options that may be passed to getSignedUrl
-public protocol SignedUrlOptions {
-    var version: SignedUrlVersion { get set }
-    var action: SignedUrlAction { get set }
-    var expires: Int { get set }
-    var contentType: String? { get set }
+public struct SignedUrlOptions {
+    var version: SignedUrlVersion
+    var action: SignedUrlAction
+    var expires: Int
+    var contentType: String?
 }
 
 // Options for setting website characteristics
-public protocol WebsiteOptions {
-    var mainPageSuffix: String? { get set }
-    var notFoundPage: String? { get set }
+public struct WebsiteOptions {
+    var mainPageSuffix: String?
+    var notFoundPage: String?
 }
 
 // Per object (file) metadata
-public protocol FileMetadata {
-    var name: String { get set }
-    var storageClass: String? { get set }
-    var size: String { get set }
-    var etag: String? { get set }
-    var updated: String? { get set }
+public struct FileMetadata {
+    var name: String
+    var storageClass: String?
+    var size: String
+    var etag: String?
+    var updated: String?
 }
 
 // The behaviors required of a file handle (part of storage provider)
@@ -104,41 +104,49 @@ public protocol RemoteFile {
     // Get a signed URL to the file
     func getSignedUrl(options: SignedUrlOptions) -> EventLoopFuture<String>
     // Get the underlying implementation for provider-dependent operations
-    func getImplementation() -> AnyObject
+    func getImplementation() -> Any?
 }
 
 // The behaviors required of a storage client (part of storage provider)
 public protocol StorageClient {
     // Get the root URL if the client is for web storage (return falsey for data storage)
-    func getURL() -> String
+    func getURL() -> String?
     // Set website information
     func setWebsite(website: WebsiteOptions) -> EventLoopFuture<Void>
     // Delete files from the store
-    func deleteFiles(options: DeleteFilesOptions?) -> EventLoopFuture<Void>
+    func deleteFiles(options: DeleteFilesOptions?) -> EventLoopFuture<[String]>
     // Add a local file (specified by path)
     func upload(path: String, options: UploadOptions?) -> EventLoopFuture<Void>
-    // Obtain a file handle in the store.  The file may or may not exist
+    // Obtain a file handle in the store.  The file may or may not exist.  This operation is purely local.
     func file(destination: String) -> RemoteFile
     // Get files from the store
     func getFiles(options: GetFilesOptions?) -> EventLoopFuture<[RemoteFile]>
     // Get the underlying implementation for provider-dependent operations
-    func getImplementation() -> AnyObject
+    func getImplementation() -> Any?
 }
 
 // The top-level signature of a storage provider
 public protocol StorageProvider {
     // Provide the appropriate client handle for accessing a type file store (web or data) in a particular namespace
-    func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary) -> StorageClient
+    func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary) throws -> StorageClient
     // Convert an object containing credentials as stored in couchdb into the proper form for the credential store
     // Except for GCS, which is grandfathered as the default, the result must include a 'provider' field denoting
     // a valid npm-installable package
-    func prepareCredentials(_ original: NSDictionary) -> NSDictionary
+    func prepareCredentials(_ original: NSDictionary) throws -> NSDictionary
     // Unique identifier for this storage provider, e.g. @nimbella/storage-provider.
     // Used by factory function to perform dynamic lookups for provider impl at runtime.
     var identifier: String { get }
 }
 
-// Obtain the storage provide for a given provider string
+let s3StorageProvider: StorageProvider = S3Provider()
+let gcsStorageProvider: StorageProvider = GCSProvider()
+
+let providers = Dictionary<String, StorageProvider>(uniqueKeysWithValues: [
+    (s3StorageProvider.identifier, s3StorageProvider),
+    (gcsStorageProvider.identifier, gcsStorageProvider)
+])
+
+// Obtain the storage provider for a given provider string
 public func getStorageProvider(_ provider: String) throws -> StorageProvider {
     throw NimbellaError.notImplemented
 }

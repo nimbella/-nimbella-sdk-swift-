@@ -9,6 +9,7 @@ class BasicTests : XCTestCase {
         // Requires local redis instance to be started and use the indicated password
         setenv("__NIM_REDIS_IP", "localhost", 1)
         setenv("__NIM_REDIS_PASSWORD", "3b37b7", 1)
+        // Requires that `storage.env` be generated using `nim auth env` and placed in your Nimbella directory
         let env = ProcessInfo.processInfo.environment
         let nimbellaDir = env["NIMBELLA_DIR"] ?? "\(env["HOME"]!)/.nimbella"
         let storageEnvFile = "\(nimbellaDir)/storage.env"

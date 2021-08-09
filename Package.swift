@@ -25,10 +25,13 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
-        .package(url: "https://github.com/swiftpackages/DotEnv.git", from: "2.0.0")
+        .package(url: "https://github.com/swiftpackages/DotEnv.git", from: "2.0.0"),
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0")
     ],
     targets: [
-        .target(name: "nimbella-sdk", dependencies: ["RediStack"]),
+        .target(name: "nimbella-sdk", dependencies: ["RediStack",
+          .product(name: "SotoS3", package: "soto"),
+          .product(name: "SotoIAM", package: "soto") ]),
         .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-sdk", "DotEnv"])
     ]
 )
