@@ -25,6 +25,7 @@ let branch = "dev"
 
 let package = Package(
     name: "Action",
+    platforms: [.macOS("10.15")],
     products: [
       .executable(
         name: "Action",
@@ -32,11 +33,12 @@ let package = Package(
       )
     ],
     dependencies: [
-        .package(name: "nimbella-sdk", url: "\(repo)", branch: "\(branch)")
+        .package(name: "nimbella-sdk", url: "\(repo)", .branch("\(branch)"))
     ],
     targets: [
-      .target(
+      .executableTarget(
         name: "Action",
+        dependencies: [ "nimbella-sdk" ],
         path: "."
       )
     ]

@@ -24,7 +24,7 @@ let package = Package(
         .library(name: "nimbella-sdk", targets: ["nimbella-sdk"])
     ],
     dependencies: [
-        .package(url: "https://gitlab.com/mordil/RediStack.git", from: "1.1.2"),
+        .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
         .package(url: "https://github.com/swiftpackages/DotEnv.git", from: "2.0.0"),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0")
     ],

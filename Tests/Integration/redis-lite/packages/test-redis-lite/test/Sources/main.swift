@@ -23,12 +23,12 @@ func main(args: [String:Any]) -> [String:Any] {
         let redisClient = try redis()
         try redisClient.set("foo", to: "bar").wait()
         let result = try redisClient.get("foo").wait()?.string
-        if (result != "bar) {
+        if (result != "bar") {
             return [ "error": "Result of get was not 'bar'" ]
         }
         let deleted = try redisClient.delete(["foo"]).wait()
         if (deleted != 1) {
-            return [ "error": "result of dete was not '1'" ]
+            return [ "error": "result of delete was not '1'" ]
         let newResult = try redisClient.get("foo").wait()
         if (newResult != nil) {
             return [ "error": "delete did not have the desired effect" ]
