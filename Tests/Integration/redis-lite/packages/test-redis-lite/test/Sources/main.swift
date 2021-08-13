@@ -29,12 +29,13 @@ func main(args: [String:Any]) -> [String:Any] {
         let deleted = try redisClient.delete(["foo"]).wait()
         if (deleted != 1) {
             return [ "error": "result of delete was not '1'" ]
+        }
         let newResult = try redisClient.get("foo").wait()
         if (newResult != nil) {
             return [ "error": "delete did not have the desired effect" ]
         }
     } catch {
-        return [ "error": "caught exception: \(error)" ]
+        return [ "error": "\(error)"]
     }
     return [ "success": true ]
 }
