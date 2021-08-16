@@ -19,36 +19,36 @@ import NIO
 
 // Metadata that can be set on a file
 public struct SettableFileMetadata {
-    var contentType: String?
-    var cacheControl: String?
+    public var contentType: String?
+    public var cacheControl: String?
 }
 
 // Options that may be passed to deleteFiles
 public struct DeleteFilesOptions {
-    var force: Bool?
-    var prefix: String?
+    public var force: Bool?
+    public var prefix: String?
 }
 
 // Options that may be passed to upload
 public struct UploadOptions {
-    var destination: String?
-    var gzip: Bool?
-    var metadata: SettableFileMetadata?
+    public var destination: String?
+    public var gzip: Bool?
+    public var metadata: SettableFileMetadata?
 }
 
 // Options that may be passed to getFiles
 public struct GetFilesOptions {
-    var prefix: String?
+    public var prefix: String?
 }
 
 // Options that may be passed to save
 public struct SaveOptions {
-    var metadata: SettableFileMetadata?
+    public var metadata: SettableFileMetadata?
 }
 
 // Options that may be passed to download
 public struct DownloadOptions {
-    var destination: String?
+    public var destination: String?
 }
 
 // Types used with signed URLs
@@ -64,25 +64,25 @@ public enum SignedUrlAction: String {
 
 // Options that may be passed to getSignedUrl
 public struct SignedUrlOptions {
-    var version: SignedUrlVersion
-    var action: SignedUrlAction
-    var expires: Int
-    var contentType: String?
+    public var version: SignedUrlVersion
+    public var action: SignedUrlAction
+    public var expires: Int
+    public var contentType: String?
 }
 
 // Options for setting website characteristics
 public struct WebsiteOptions {
-    var mainPageSuffix: String?
-    var notFoundPage: String?
+    public var mainPageSuffix: String?
+    public var notFoundPage: String?
 }
 
 // Per object (file) metadata
 public struct FileMetadata {
-    var name: String
-    var storageClass: String?
-    var size: String
-    var etag: String?
-    var updated: String?
+    public var name: String
+    public var storageClass: String?
+    public var size: String
+    public var etag: String?
+    public var updated: String?
 }
 
 // The behaviors required of a file handle (part of storage provider)
@@ -90,9 +90,9 @@ public protocol RemoteFile {
     // The name of the file
     var name: String { get }
     // Save data into the file
-    func save(data: Data, options: SaveOptions) -> EventLoopFuture<Void>
+    func save(_ data: Data, _ options: SaveOptions?) -> EventLoopFuture<Void>
     // Set the file metadata
-    func setMetadata(meta: SettableFileMetadata) -> EventLoopFuture<Void>
+    func setMetadata(_ meta: SettableFileMetadata) -> EventLoopFuture<Void>
     // Get the file metadata
     func getMetadata() -> EventLoopFuture<FileMetadata>
     // Test whether file exists
@@ -100,9 +100,9 @@ public protocol RemoteFile {
     // Delete the file
     func delete() -> EventLoopFuture<Void>
     // Obtain the contents of the file
-    func download(options: DownloadOptions?) -> EventLoopFuture<Data>
+    func download(_ options: DownloadOptions?) -> EventLoopFuture<Data>
     // Get a signed URL to the file
-    func getSignedUrl(options: SignedUrlOptions) -> EventLoopFuture<String>
+    func getSignedUrl(_ options: SignedUrlOptions) -> EventLoopFuture<String>
     // Get the underlying implementation for provider-dependent operations
     func getImplementation() -> Any?
 }
@@ -112,15 +112,15 @@ public protocol StorageClient {
     // Get the root URL if the client is for web storage (return falsey for data storage)
     func getURL() -> String?
     // Set website information
-    func setWebsite(website: WebsiteOptions) -> EventLoopFuture<Void>
+    func setWebsite(_ website: WebsiteOptions) -> EventLoopFuture<Void>
     // Delete files from the store
-    func deleteFiles(options: DeleteFilesOptions?) -> EventLoopFuture<[String]>
+    func deleteFiles(_ options: DeleteFilesOptions?) -> EventLoopFuture<[String]>
     // Add a local file (specified by path)
-    func upload(path: String, options: UploadOptions?) -> EventLoopFuture<Void>
+    func upload(_ path: String, _ options: UploadOptions?) -> EventLoopFuture<Void>
     // Obtain a file handle in the store.  The file may or may not exist.  This operation is purely local.
-    func file(destination: String) -> RemoteFile
+    func file(_ destination: String) -> RemoteFile
     // Get files from the store
-    func getFiles(options: GetFilesOptions?) -> EventLoopFuture<[RemoteFile]>
+    func getFiles(_ options: GetFilesOptions?) -> EventLoopFuture<[RemoteFile]>
     // Get the underlying implementation for provider-dependent operations
     func getImplementation() -> Any?
 }
@@ -148,5 +148,8 @@ let providers = Dictionary<String, StorageProvider>(uniqueKeysWithValues: [
 
 // Obtain the storage provider for a given provider string
 public func getStorageProvider(_ provider: String) throws -> StorageProvider {
-    throw NimbellaError.notImplemented
+    guard let provider = providers[provider] else {
+        throw NimbellaError.noSuchStorageProvider(provider)
+    }
+    return provider
 }

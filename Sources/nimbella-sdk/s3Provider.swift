@@ -54,8 +54,10 @@ struct StorageKey {
     let weburl: String?
     init(_ dict: NSDictionary) {
         self.credentials = Credentials(dict["credentials"] as? NSDictionary ?? NSDictionary())
-        self.region = Region(awsRegionName: dict["region"] as? String ?? "")
-        self.endpoint = dict["endpoint"] as? String
+        let region = dict["region"] as? String
+        self.region = region?.count == 0 ? nil : Region(awsRegionName: region!)
+        let endpoint = dict["endpoint"] as? String
+        self.endpoint = endpoint?.count == 0 ? nil : endpoint
         self.weburl = dict["weburl"] as? String
     }
 }
@@ -76,14 +78,14 @@ class S3RemoteFile : RemoteFile {
         self.web = web
     }
 
-    func save(data: Data, options: SaveOptions) -> EventLoopFuture<Void> {
+    func save(_ data: Data, _ options: SaveOptions?) -> EventLoopFuture<Void> {
         let ACL: S3.ObjectCannedACL? = self.web ? .publicRead : nil
         let req = S3.PutObjectRequest(
           acl: ACL,
           body: .data(data),
           bucket: self.bucketName,
-          cacheControl: options.metadata?.cacheControl,
-          contentType: options.metadata?.contentType,
+          cacheControl: options?.metadata?.cacheControl,
+          contentType: options?.metadata?.contentType,
           key: self.name
         )
         return self.client.putObject(req).map {
@@ -91,7 +93,7 @@ class S3RemoteFile : RemoteFile {
         }
     }
 
-    func setMetadata(meta: SettableFileMetadata) -> EventLoopFuture<Void> {
+    func setMetadata(_ meta: SettableFileMetadata) -> EventLoopFuture<Void> {
         let copySource = "\(self.bucketName)/\(self.name)"
         //let { cacheControl: CacheControl, contentType: ContentType } = meta
         let ACL: S3.ObjectCannedACL? = self.web ? .publicRead : nil
@@ -140,7 +142,7 @@ class S3RemoteFile : RemoteFile {
         }
     }
 
-    func download(options: DownloadOptions?) -> EventLoopFuture<Data> {
+    func download(_ options: DownloadOptions?) -> EventLoopFuture<Data> {
         let cmd = S3.GetObjectRequest(bucket: self.bucketName, key: self.name)
         let result = self.client.getObject(cmd)
         return result.flatMap { output in
@@ -157,7 +159,7 @@ class S3RemoteFile : RemoteFile {
         }
     }
 
-    func getSignedUrl(options: SignedUrlOptions) -> EventLoopFuture<String> {
+    func getSignedUrl(_ options: SignedUrlOptions) -> EventLoopFuture<String> {
         if (options.version != .v4) {
             let err = NimbellaError.incorrectInput("Signing version v4 is required for s3")
             return eventLoop.makeFailedFuture(err)
@@ -199,6 +201,10 @@ class S3Client : StorageClient {
         self.url = url
     }
 
+    deinit {
+        try? self.s3.client.syncShutdown()
+    }
+
     func getURL() -> String? {
         return url
     }
@@ -207,7 +213,7 @@ class S3Client : StorageClient {
         return self.bucketName
     }
 
-    func setWebsite(website: WebsiteOptions) -> EventLoopFuture<Void> {
+    func setWebsite(_ website: WebsiteOptions) -> EventLoopFuture<Void> {
         let errDoc = website.notFoundPage == nil ? nil : S3.ErrorDocument(key: website.notFoundPage!)
         let suffix = website.mainPageSuffix == nil ? nil : S3.IndexDocument(suffix: website.mainPageSuffix!)
         let config = S3.WebsiteConfiguration(errorDocument: errDoc, indexDocument: suffix)
@@ -216,7 +222,7 @@ class S3Client : StorageClient {
         }
     }
 
-    func deleteFiles(options: DeleteFilesOptions?) -> EventLoopFuture<[String]> {
+    func deleteFiles(_ options: DeleteFilesOptions?) -> EventLoopFuture<[String]> {
         // The multi-object delete takes a list of objects.  So this takes two round trips.
         let listReq = S3.ListObjectsRequest(bucket: self.bucketName, prefix: options?.prefix)
         let listResult = self.s3.listObjects(listReq)
@@ -242,7 +248,7 @@ class S3Client : StorageClient {
         }
     }
 
-    func upload(path: String, options: UploadOptions?) -> EventLoopFuture<Void> {
+    func upload(_ path: String, _ options: UploadOptions?) -> EventLoopFuture<Void> {
         let fh = FileHandle(forReadingAtPath: path)
         guard let data = fh?.availableData else {
             return eventLoop.makeFailedFuture(NimbellaError.couldNotOpen(path))
@@ -262,11 +268,11 @@ class S3Client : StorageClient {
         }
     }
 
-    func file(destination: String) -> RemoteFile {
+    func file(_ destination: String) -> RemoteFile {
         return S3RemoteFile(s3, bucketName, destination, url != nil)
     }
 
-    func getFiles(options: GetFilesOptions?) -> EventLoopFuture<[RemoteFile]> {
+    func getFiles(_ options: GetFilesOptions?) -> EventLoopFuture<[RemoteFile]> {
         let listReq = S3.ListObjectsRequest(bucket: self.bucketName, prefix: options?.prefix)
         let listResult = self.s3.listObjects(listReq)
         return listResult.map {

@@ -23,7 +23,7 @@ import NIO
 
 // Errors that can occur.
 public enum NimbellaError : Error, Equatable {
-    case notImplemented
+    case notImplemented(String)
     case noKeyValueStore
     case noObjectStoreCredentials
     case corruptObjectStoreCredentials(String)
@@ -34,6 +34,7 @@ public enum NimbellaError : Error, Equatable {
     case multiple([NimbellaError])
     case incorrectInput(String)
     case couldNotOpen(String)
+    case noSuchStorageProvider(String)
 }
 
 // Retrieve a redis client handle
