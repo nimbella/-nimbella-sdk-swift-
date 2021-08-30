@@ -30,8 +30,7 @@ let package = Package(
     ],
     targets: [
         .target(name: "nimbella-sdk", dependencies: ["RediStack",
-          .product(name: "SotoS3", package: "soto"),
-          .product(name: "SotoIAM", package: "soto") ]),
+          .product(name: "SotoS3", package: "soto") ]),
         .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-sdk", "DotEnv"])
     ]
 )
