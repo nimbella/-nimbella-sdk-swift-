@@ -1,4 +1,5 @@
-import nimbella_sdk
+import nimbella_key_value
+import nimbella_object
 import XCTest
 import RediStack
 import DotEnv

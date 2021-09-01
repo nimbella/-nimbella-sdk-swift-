@@ -149,7 +149,7 @@ let providers = Dictionary<String, StorageProvider>(uniqueKeysWithValues: [
 // Obtain the storage provider for a given provider string
 public func getStorageProvider(_ provider: String) throws -> StorageProvider {
     guard let provider = providers[provider] else {
-        throw NimbellaError.noSuchStorageProvider(provider)
+        throw NimbellaObjectError.noSuchStorageProvider(provider)
     }
     return provider
 }

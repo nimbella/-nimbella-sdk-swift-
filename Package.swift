@@ -21,7 +21,8 @@ let package = Package(
     name: "nimbella-sdk",
     platforms: [.iOS("13.0"), .macOS("10.15")],
     products: [
-        .library(name: "nimbella-sdk", targets: ["nimbella-sdk"])
+        .library(name: "nimbella-object", targets: ["nimbella-object"]),
+        .library(name: "nimbella-key-value", targets: ["nimbella-key-value"])
     ],
     dependencies: [
         .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
@@ -29,8 +30,8 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0")
     ],
     targets: [
-        .target(name: "nimbella-sdk", dependencies: ["RediStack",
-          .product(name: "SotoS3", package: "soto") ]),
-        .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-sdk", "DotEnv"])
+        .target(name: "nimbella-key-value", dependencies: ["RediStack"]),
+        .target(name: "nimbella-object", dependencies: [ .product(name: "SotoS3", package: "soto") ]),
+        .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-object", "nimbella-key-value", "DotEnv"])
     ]
 )
