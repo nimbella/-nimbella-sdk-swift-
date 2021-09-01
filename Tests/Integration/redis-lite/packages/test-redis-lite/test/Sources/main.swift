@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import nimbella_sdk
+import nimbella_key_value
 import RediStack
 
 func main(args: [String:Any]) -> [String:Any] {
