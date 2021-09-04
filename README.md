@@ -1,33 +1,37 @@
 # Nimbella SDK for Swift
 
-A Swift library to interact with [`nimbella.com`](https://nimbella.com) services.
+A Swift library to interact with [`nimbella.com`](https://nimbella.com) services.  
+
+To better manage binary size, the SDK is provided as a Swift _package_ (`nimbella-sdk`) with two library _products_ (`nimbella-key-value` and `nimbella-object`).  The latter library is implemented for S3 on AWS.  Support for object stores on GCP is a future objective.
 
 As of this writing
+- The key-value library (by itself) can be used to produce binaries of acceptable size.  The action can use key-value storage but not object storage.
+- The object library (whether by itself or in combination with the key-value library) will result in a binary that is too large to be installed as an action.  This problem is being worked on.
+- Building the Swift binary action is somewhat painful because there are problems with remote build in the Swift runtime.   These are being investigated.  The current workaround build procedure is documented below.
 
+There are unit tests and integration tests for both library components.
 - Unit tests will pass for key-value functionality and for object store functionality when provided by S3 on AWS.  
-	- Support for object stores on GCP will be added in the future.   
-	- These tests must be run on a mac.
-- There is an incomplete integration test for key-value.  Development is currently blocked by remote build problems.  The test does not yet run.
-- The SDK is not yet functional for its stated purpose due to remote build problems.
+  - These tests must be run on a mac.
+- The integration test for key-value passes.  It requires the workaround build procedure as documented below.
+- The integration test for object store builds (using the workaround procedure) but the resulting binary is slightly too large to install as an action.  It is likely to pass once it can be installed since the code is similar to code that passes in the unit test.
 
-## Installation
+## Installation and usage
 
-To be explained systematically once a working integration test is available.  The dependency clause in `Tests/Integration/redis-list/packages/test-redis-lite/test/Package.swift` is probably correct and should give a clue to how it's going to work.
+The SDK is not installed per se.   Rather, you declare the desired library or libraries as illustrated in the two integration tests (`Tests/Integration/redis-lite` and `Tests/Integration/storage-lite`).   The `Package.swift` file shows the syntax for denoting the package and products.  The `import` statement for the component modules are illustrated in the `main.swift` files.
 
-## Usage
-
-Usage instructions for "real world" usage will be provided once a working integration test is available.
-
-To run the unit test
+## Running the Unit Tests
 
 1.  `macOS` 10.15 and `XCode 12` are assumed in the following.  Whether it will work in other environments is unknown at this time.  The ultimate intent is that XCode should not be required if you have Swift 5.4 installed.  You should be able to use any text editor and the `swift` CLI to compile and test.
 
 2.  The unit test for object store requires
-    - that your namespace be on an AWS system (if not, the object store test will fail but the key-value one should still succeed)
-    - that your `nim` CLI provide the command `nim auth env`.
-        - as of version 1.17.0, this was not yet the case.
-        - if are adept with building `nim` from scratch and are willing to hand-merge PR 150, you can build your own copy
-        - otherwise, assume the object store test will fail; the key-value test should still succeed.
+  - that your namespace be on an AWS system (if not, the object store test will fail but the key-value one should still succeed)
+  - that your `nim` CLI provide the command `nim auth env`.
+    - as of version 1.17.0, this was not yet the case but the code is actually merged in the repo (just not released)
+    - if are willing to build `nim` from scratch
+      - clone its repo (https://github.com/nimbella/nimbella-cli.git)
+      - build it according to the provided instructions and install it temporarily
+      - use it to execute `nim auth env` in next step
+    - otherwise, assume the object store test will fail; the key-value test should still succeed.
        
 3.  To set up for the object store test (assuming you meet the pre-reqs)
 ```
@@ -46,19 +50,34 @@ nim auth env > ~/.nimbella/storage.env
 
 7.  Then use `Product -> Test` to run the unit tests under XCode.
 
-## Notes
+## Alternative build procedure
 
-The purpose of the SDK is to support key-value storage and object storage for code running in serverless functions ("actions") in the Nimbella stack.  Usage in other contexts is possible but may require understanding limitations that come from the original design point.
+This procedure should only be in effect until we resolve problems with remote build in the Swift runtime.  It requires that `docker` be installed locally.  The first step is to build the runtime image `action-swift-v5.4`.  It should only be necessary to do this one time.  Then, to run the integration tests use the scripts in `Tests/Integration`, which employ `docker` to build and install the test actions.
 
-To use the code in Nimbella actions, the Swift package manager root directory (containing `Package.swift` and `Sources`) must be deployed using the Nimbella [deployer](https://docs.nimbella.com/deployer-overview), specifying [_remote build_](https://docs.nimbella.com/building#remote-builds).  _Sorry, this is currently failing.  Investigation is ongoing._
+### Building a local copy of `action-swift-v5.4` (one time)
 
-#### Key-Value
+1.  Clone the repo https://github.com/nimbella-corp/openwhisk-runtime-swift.
+2.  Checkout this commit: 8095748 (once issue https://github.com/nimbella-corp/openwhisk-runtime-swift/issues/4 is resolved, you can just check out branch `dev`).
+3.  In the root of the working tree run `./gradlew core:swift54Action:distDocker`
+4.  Using `docker image ls` or a similar command check that you now have a copy of `action-swift-v5.4`.
 
-Key-value storage in Nimbella is provided via `redis` instances.  Redis support is provided via the [`RediStack` client](https://gitlabhttps://github.com/Mordil/RediStack).  The Nimbella SDK adds support for Nimbella's internal authentication conventions.   To use the code outside of a Nimbella action, set the environment variables `__NIM_REDIS_IP` and `__NIM_REDIS_PASSWORD` as in the unit tests of this package.  It is not possible to use the Nimbella client with a redis instance that does not require a password.  In that situation it is more straightforward to use the `RediStack` client directly.
+### Building an image to install the integration tests
 
-#### Object store
+In the `Tests/Integration` directory run `./buildImage.sh`.   This should create the image `swift-sdk-tests`.  The image is based on the `action-swift-v5.4` image but incorporates the integration test projects and your Nimbella credentials.
 
-Object store support uses the abstraction declared in `Sources/nimbella-sdk/StorageInterface.swift`.  This is closely based on the similar abstractions used in the `nodejs` and `Python` SDKs.  At present, it only works when the object store is S3.  Attempting to use it with a GCS object store will cause `NimbellaError.notImplemented` to be thrown.   Adding GCS support is a future objective.
+### Installing an integration test
+
+There are two integration tests.  
+1.  To install the key-value one, run `./installAction.sh redis-lite`.   This should work.  
+2.  You can also do `./installAction.sh storage-lite`.   It will get through the build step but will fail the install because the action is too large.
+
+### Running the integration test
+
+To run the key-value integration test, `nim action invoke test-redis-lite/test`.  You should get a success return.   The object integration test could be run in a similar way once it installs.
+
+### Building your own actions
+
+It should be possible to build your own actions using the `nimbella-key-value` library.  Use the integration test (code and scripts) as a model and adapt them as needed.
 
 ## Support
 
