@@ -2,4 +2,4 @@ packages:
   - name: test-redis-lite
     actions:
       - name: test
-        runtime: swift:5.4
+        runtime: swift:default

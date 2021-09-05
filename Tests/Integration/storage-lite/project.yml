@@ -2,4 +2,4 @@ packages:
   - name: test-storage-lite
     actions:
       - name: test
-        runtime: swift:5.4
+        runtime: swift:default
