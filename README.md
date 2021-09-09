@@ -24,14 +24,14 @@ The SDK is not installed per se.   Rather, you declare the desired library or li
 1.  `macOS` 10.15 and `XCode 12` are assumed in the following.  Whether it will work in other environments is unknown at this time.  The ultimate intent is that XCode should not be required if you have Swift 5.4 installed.  You should be able to use any text editor and the `swift` CLI to compile and test.
 
 2.  The unit test for object store requires
-  - that your namespace be on an AWS system (if not, the object store test will fail but the key-value one should still succeed)
-  - that your `nim` CLI provide the command `nim auth env`.
-    - as of version 1.17.0, this was not yet the case but the code is actually merged in the repo (just not released)
-    - if are willing to build `nim` from scratch
-      - clone its repo (https://github.com/nimbella/nimbella-cli.git)
-      - build it according to the provided instructions and install it temporarily
-      - use it to execute `nim auth env` in next step
-    - otherwise, assume the object store test will fail; the key-value test should still succeed.
+    - that your namespace be on an AWS system (if not, the object store test will fail but the key-value one should still succeed)
+    - that your `nim` CLI provide the command `nim auth env`.
+      - as of version 1.17.0, this was not yet the case but the code is actually merged in the repo (just not released)
+      - if you are willing to build `nim` from scratch
+        - clone its repo (https://github.com/nimbella/nimbella-cli.git)
+        - build it according to the provided instructions and install it temporarily
+        - use it to execute `nim auth env` in next step
+      - otherwise, assume the object store test will fail; the key-value test should still succeed.
        
 3.  To set up for the object store test (assuming you meet the pre-reqs)
 ```
@@ -39,10 +39,9 @@ nim auth env > ~/.nimbella/storage.env
 ```
 
 4.  To set up for the key-value test
-
-   1. Install `redis` on your machine as [explained here](https://phoenixnap.com/kb/install-redis-on-mac).
-   2. Start the `redis` server and enable the `requirepass` option with the canned password (used for local testing only) of `3b37b7`.  
-       - Note that by default a local redis instance does not listen on any external ports, so you are not depending on this password to secure your machine.  It's just that Nimbella redis support requires that there be a password and this canned one is used by the test.  You can change it to any desired value in the code of the test if it makes you feel better.
+    1. Install `redis` on your machine as [explained here](https://phoenixnap.com/kb/install-redis-on-mac).
+    2. Start the `redis` server and enable the `requirepass` option with the canned password (used for local testing only) of `3b37b7`.  
+      - Note that by default a local redis instance does not listen on any external ports, so you are not depending on this password to secure your machine.  It's just that Nimbella redis support requires that there be a password and this canned one is used by the test.  You can change it to any desired value in the code of the test if it makes you feel better.
 
 5.  Checkout this repo, then open XCode on the resulting project.  The package manager should incorporate the dependencies of the SDK itself and of the unit tests.
 
@@ -56,10 +55,11 @@ This procedure should only be in effect until we resolve problems with remote bu
 
 ### Building a local copy of `action-swift-v5.4` (one time)
 
-1.  Clone the repo https://github.com/nimbella-corp/openwhisk-runtime-swift.
-2.  Checkout this commit: 8095748 (once issue https://github.com/nimbella-corp/openwhisk-runtime-swift/issues/4 is resolved, you can just check out branch `dev`).
-3.  In the root of the working tree run `./gradlew core:swift54Action:distDocker`
-4.  Using `docker image ls` or a similar command check that you now have a copy of `action-swift-v5.4`.
+1.  Clone the repo https://github.com/joshuaauerbach/openwhisk-runtime-swift.
+    - this code is the subject of a PR should eventually be in the upstream repo in `nimbella-corp`.
+3.  Checkout the `dev` branch.
+4.  In the root of the working tree run `./gradlew core:swift54Action:distDocker`
+5.  Using `docker image ls` or a similar command check that you now have a copy of `action-swift-v5.4`.
 
 ### Building an image to install the integration tests
 
