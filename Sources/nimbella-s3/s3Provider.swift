@@ -16,7 +16,7 @@
 
 import Foundation
 import SotoS3
-import NIO
+import nimbella_storage
 
 // Compute the actual name of a bucket.  Based on similar code in the nodejs SDK (with appropriate
 // translation from TypeScript to Swift).
@@ -325,4 +325,17 @@ class S3Provider : StorageProvider {
     }
 
     var identifier: String = "@nimbella/storage-s3"
+}
+
+// Bootstrapping
+public final class Maker : ProviderMaker {
+    public override func make() -> StorageProvider {
+        return S3Provider()
+    }
+}
+
+@_cdecl("loadProvider")
+public func loadProvider() -> UnsafeMutableRawPointer {
+    let maker = Maker()
+    return Unmanaged.passRetained(maker).toOpaque()
 }

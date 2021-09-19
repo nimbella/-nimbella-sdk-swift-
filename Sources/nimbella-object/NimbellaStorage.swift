@@ -17,21 +17,7 @@
 // The visible entry point to the Nimbella SDK for storage.
 
 import Foundation
-
-// Errors that can occur in the Nimbella Storage SDK
-public enum NimbellaObjectError : Error, Equatable {
-    case notImplemented(String)
-    case noObjectStoreCredentials
-    case corruptObjectStoreCredentials(String)
-    case insufficientEnvironment
-    case noValidURL
-    case insufficientCredentials
-    case notDeleted(String)
-    case multiple([NimbellaObjectError])
-    case incorrectInput(String)
-    case couldNotOpen(String)
-    case noSuchStorageProvider(String)
-}
+import nimbella_storage
 
 // Retrieve a storageClient handle
 public func storageClient(_ web: Bool) throws -> StorageClient {

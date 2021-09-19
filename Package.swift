@@ -22,16 +22,22 @@ let package = Package(
     platforms: [.iOS("13.0"), .macOS("10.15")],
     products: [
         .library(name: "nimbella-object", targets: ["nimbella-object"]),
-        .library(name: "nimbella-key-value", targets: ["nimbella-key-value"])
+        .library(name: "nimbella-key-value", targets: ["nimbella-key-value"]),
+        .library(name: "nimbella-s3", type: .dynamic, targets: ["nimbella-s3"]),
+        .library(name: "nimbella-gcs", type: .dynamic, targets: ["nimbella-gcs"])
     ],
     dependencies: [
         .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
         .package(url: "https://github.com/swiftpackages/DotEnv.git", from: "2.0.0"),
-        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0")
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0")
     ],
     targets: [
+	    .target(name: "nimbella-storage", dependencies: [.product(name: "NIO", package: "swift-nio")]),
         .target(name: "nimbella-key-value", dependencies: ["RediStack"]),
-        .target(name: "nimbella-object", dependencies: [ .product(name: "SotoS3", package: "soto") ]),
+        .target(name: "nimbella-object", dependencies: ["nimbella-storage"]),
+        .target(name: "nimbella-s3", dependencies: ["nimbella-storage", .product(name: "SotoS3", package: "soto")]),
+        .target(name: "nimbella-gcs", dependencies: ["nimbella-storage"]),
         .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-object", "nimbella-key-value", "DotEnv"])
     ]
 )

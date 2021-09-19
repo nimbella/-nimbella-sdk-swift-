@@ -30,6 +30,10 @@ class BasicTests : XCTestCase {
     func testStorage() {
         self.continueAfterFailure = false
         // Requires that `storage.env` be generated using `nim auth env` and placed in your Nimbella directory
+        // You must also run a batch build ('swift build') and place the coordinates of the folder containing
+        // the generated .dylib files in the file as
+        // NIMBELLA_SDK_SUFFIX=.dylib
+        // NIMBELLA_SDK_PREFIX=/path/to/the/folder
         let env = ProcessInfo.processInfo.environment
         let nimbellaDir = env["NIMBELLA_DIR"] ?? "\(env["HOME"]!)/.nimbella"
         let storageEnvFile = "\(nimbellaDir)/storage.env"

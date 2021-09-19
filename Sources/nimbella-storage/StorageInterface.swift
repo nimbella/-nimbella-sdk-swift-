@@ -17,6 +17,22 @@
 import Foundation
 import NIO
 
+// Errors that can occur in the Nimbella Storage SDK
+public enum NimbellaObjectError : Error, Equatable {
+    case notImplemented(String)
+    case noObjectStoreCredentials
+    case corruptObjectStoreCredentials(String)
+    case insufficientEnvironment
+    case noValidURL
+    case insufficientCredentials
+    case notDeleted(String)
+    case multiple([NimbellaObjectError])
+    case incorrectInput(String)
+    case couldNotOpen(String)
+    case noSuchStorageProvider(String)
+    case couldNotLoadProvider(String)
+}
+
 // Metadata that can be set on a file
 public struct SettableFileMetadata {
     public var contentType: String?
@@ -78,6 +94,13 @@ public struct WebsiteOptions {
 
 // Per object (file) metadata
 public struct FileMetadata {
+    public init(name: String, storageClass: String?, size: String, etag: String?, updated:  String?) {
+        self.name = name
+        self.storageClass = storageClass
+        self.size = size
+        self.etag = etag
+        self.updated = updated
+    }
     public var name: String
     public var storageClass: String?
     public var size: String
@@ -138,18 +161,51 @@ public protocol StorageProvider {
     var identifier: String { get }
 }
 
-let s3StorageProvider: StorageProvider = S3Provider()
-let gcsStorageProvider: StorageProvider = GCSProvider()
+// This class is used to aid in dynamic loading and instantiation of providers
+open class ProviderMaker {
+    public init() {}
+    open func make() -> StorageProvider {
+        fatalError("You have to override this method.")
+    }
+}
 
-let providers = Dictionary<String, StorageProvider>(uniqueKeysWithValues: [
-    (s3StorageProvider.identifier, s3StorageProvider),
-    (gcsStorageProvider.identifier, gcsStorageProvider)
+var providers = Dictionary<String, StorageProvider>()
+let providerLibs = Dictionary<String, String>(uniqueKeysWithValues: [
+    ("@nimbella/storage-gcs", "nimbella-gcs"),
+    ("@nimbella/storage-s3", "nimbella-s3")
 ])
 
-// Obtain the storage provider for a given provider string
+// Obtain the storage provider for a given provider string.
+// Manages simple cache of providers.  Calls getProvider if dynamic loading is required.
 public func getStorageProvider(_ provider: String) throws -> StorageProvider {
-    guard let provider = providers[provider] else {
+    if let provider = providers[provider] {
+        return provider
+    }
+    guard let libName = providerLibs[provider] else {
         throw NimbellaObjectError.noSuchStorageProvider(provider)
     }
-    return provider
+    return try getProvider(libName)
+
+}
+
+// Manage dynamic loading of providers
+typealias ProviderStub = @convention(c) () -> UnsafeMutableRawPointer
+func getProvider(_ name: String) throws -> StorageProvider {
+    let env = ProcessInfo.processInfo.environment
+    let prefix = env["NIMBELLA_SDK_PREFIX"] ?? "/usr/local/lib"
+    let suffix = env["NIMBELLA_SDK_SUFFIX"] ?? ".so"
+    let path = "\(prefix)/lib\(name)\(suffix)"
+    let modHandle = dlopen(path, RTLD_NOW|RTLD_LOCAL)
+    if modHandle != nil {
+        defer {
+            dlclose(modHandle)
+        }
+        if let rawProvider = dlsym(modHandle, "loadProvider") {
+            let providerStub = unsafeBitCast(rawProvider, to: ProviderStub.self)
+            let provider = Unmanaged<ProviderMaker>.fromOpaque(providerStub()).takeRetainedValue().make()
+            providers[provider.identifier] = provider
+            return provider
+        }
+    }
+    throw NimbellaObjectError.couldNotLoadProvider(String(format: "%s", dlerror()))
 }

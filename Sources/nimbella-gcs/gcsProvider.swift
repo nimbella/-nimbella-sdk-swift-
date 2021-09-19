@@ -15,6 +15,7 @@
  */
 
 import Foundation
+import nimbella_storage
 
 class GCSProvider : StorageProvider {
     func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary) throws ->         StorageClient {
@@ -26,4 +27,17 @@ class GCSProvider : StorageProvider {
     }
 
     var identifier: String = "@nimbella/storage-gcs"
+}
+
+// Bootstrapping
+public final class Maker : ProviderMaker {
+    public override func make() -> StorageProvider {
+        return GCSProvider()
+    }
+}
+
+@_cdecl("loadProvider")
+public func loadProvider() -> UnsafeMutableRawPointer {
+    let maker = Maker()
+    return Unmanaged.passRetained(maker).toOpaque()
 }
