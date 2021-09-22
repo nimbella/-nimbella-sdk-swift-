@@ -16,7 +16,7 @@
 
 import Foundation
 import SotoS3
-import nimbella_storage
+import nimbella_sdk
 
 // Compute the actual name of a bucket.  Based on similar code in the nodejs SDK (with appropriate
 // translation from TypeScript to Swift).

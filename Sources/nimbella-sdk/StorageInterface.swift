@@ -189,7 +189,7 @@ public func getStorageProvider(_ provider: String) throws -> StorageProvider {
 }
 
 // Manage dynamic loading of providers
-typealias ProviderStub = @convention(c) () -> UnsafeMutableRawPointer
+typealias StgProviderStub = @convention(c) () -> UnsafeMutableRawPointer
 func getProvider(_ name: String) throws -> StorageProvider {
     let env = ProcessInfo.processInfo.environment
     let prefix = env["NIMBELLA_SDK_PREFIX"] ?? "/usr/local/lib"
@@ -201,7 +201,7 @@ func getProvider(_ name: String) throws -> StorageProvider {
             dlclose(modHandle)
         }
         if let rawProvider = dlsym(modHandle, "loadProvider") {
-            let providerStub = unsafeBitCast(rawProvider, to: ProviderStub.self)
+            let providerStub = unsafeBitCast(rawProvider, to: StgProviderStub.self)
             let provider = Unmanaged<ProviderMaker>.fromOpaque(providerStub()).takeRetainedValue().make()
             providers[provider.identifier] = provider
             return provider

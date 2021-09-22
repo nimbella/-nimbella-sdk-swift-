@@ -17,7 +17,6 @@
 // The visible entry point to the Nimbella SDK for storage.
 
 import Foundation
-import nimbella_storage
 
 // Retrieve a storageClient handle
 public func storageClient(_ web: Bool) throws -> StorageClient {

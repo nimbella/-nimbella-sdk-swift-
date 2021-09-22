@@ -15,7 +15,7 @@
  */
 
 import Foundation
-import nimbella_storage
+import nimbella_sdk
 
 class GCSProvider : StorageProvider {
     func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary) throws ->         StorageClient {
