@@ -63,8 +63,7 @@ public func keyValueClient() throws -> KeyValueClient {
     let prefix = env["NIMBELLA_SDK_PREFIX"] ?? "/usr/local/lib"
     let suffix = env["NIMBELLA_SDK_SUFFIX"] ?? ".so"
     let path = "\(prefix)/libnimbella-redis\(suffix)"
-    let modHandle = dlopen(path, RTLD_NOW|RTLD_LOCAL)
-    if modHandle != nil {
+    if let modHandle = dlopen(path, RTLD_NOW|RTLD_LOCAL) {
         defer {
             dlclose(modHandle)
         }

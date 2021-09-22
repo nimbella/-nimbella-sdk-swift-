@@ -195,8 +195,7 @@ func getProvider(_ name: String) throws -> StorageProvider {
     let prefix = env["NIMBELLA_SDK_PREFIX"] ?? "/usr/local/lib"
     let suffix = env["NIMBELLA_SDK_SUFFIX"] ?? ".so"
     let path = "\(prefix)/lib\(name)\(suffix)"
-    let modHandle = dlopen(path, RTLD_NOW|RTLD_LOCAL)
-    if modHandle != nil {
+    if let modHandle = dlopen(path, RTLD_NOW|RTLD_LOCAL) {
         defer {
             dlclose(modHandle)
         }
