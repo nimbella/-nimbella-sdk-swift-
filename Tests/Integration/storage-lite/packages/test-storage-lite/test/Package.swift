@@ -38,7 +38,7 @@ let package = Package(
     targets: [
       .executableTarget(
         name: "Action",
-        dependencies: [ .product(name: "nimbella-object", package: "nimbella-sdk") ],
+        dependencies: [ .product(name: "nimbella-sdk", package: "nimbella-sdk") ],
         path: ".",
         exclude: [ "build.sh" ]
       )

@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import nimbella_object
+import Foundation
+import nimbella_sdk
 
 func main(args: [String:Any]) -> [String:Any] {
     do {
@@ -24,16 +25,16 @@ func main(args: [String:Any]) -> [String:Any] {
         let url = client.getURL()
         if (url == nil) {
             return [ "error": "URL not found for web bucket" ]
-				}
+        }
         var file = client.file("404.html")
         let result = try file.getMetadata().wait()
         if (result.name != "404.html") {
             return [ "error":  "Expected file metadata for 404.html but got \(result)" ]
-				}
+        }
         var contents = String(decoding: try file.download(nil).wait(), as: UTF8.self)
         if (!contents.contains("Nimbella")) {
             return [ "error":  "contents of 404.html were not as expected" ]
-				}
+        }
         // Switch to data bucket for some other tests
         client = try storageClient(false)
         let testData = "this is a test"
@@ -42,12 +43,12 @@ func main(args: [String:Any]) -> [String:Any] {
         contents = String(decoding: try file.download(nil).wait(), as: UTF8.self)
         if (contents != testData) {
             return [ "error":  "contents of 'testfile' did not equal '\(testData)'" ]
-				}
+        }
         try file.delete().wait()
         let exists = try file.exists().wait()
         if (exists) {
-					 return [ "error": "file was not deleted as expected" ]
-				}
+            return [ "error": "file was not deleted as expected" ]
+        }
     } catch {
         return [ "error": "\(error)"]
     }
