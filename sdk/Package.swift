@@ -21,22 +21,14 @@ let package = Package(
     name: "nimbella-sdk",
     platforms: [.iOS("13.0"), .macOS("10.15")],
     products: [
-        .library(name: "nimbella-sdk", targets: ["nimbella-sdk"]),
-        .library(name: "nimbella-redis", type: .dynamic, targets: ["nimbella-redis"]),
-        .library(name: "nimbella-s3", type: .dynamic, targets: ["nimbella-s3"]),
-        .library(name: "nimbella-gcs", type: .dynamic, targets: ["nimbella-gcs"])
+        .library(name: "nimbella-sdk", targets: ["nimbella-sdk"])
     ],
     dependencies: [
-        .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
         .package(url: "https://github.com/swiftpackages/DotEnv.git", from: "2.0.0"),
-        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0")
     ],
     targets: [
-        .target(name: "nimbella-redis", dependencies: ["RediStack", "nimbella-sdk"]),
         .target(name: "nimbella-sdk", dependencies: [.product(name: "NIO", package: "swift-nio")]),
-        .target(name: "nimbella-s3", dependencies: ["nimbella-sdk", .product(name: "SotoS3", package: "soto")]),
-        .target(name: "nimbella-gcs", dependencies: ["nimbella-sdk"]),
         .testTarget(name: "nimbella-sdk-tests", dependencies: ["nimbella-sdk", "DotEnv"])
     ]
 )
