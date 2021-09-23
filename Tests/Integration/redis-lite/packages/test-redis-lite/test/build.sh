@@ -1,3 +1,5 @@
 #!/bin/bash
 # TEMP needed for workaround
-/bin/defaultBuild
+set -e
+swift build -c release
+mv .build/*/release/Action .
