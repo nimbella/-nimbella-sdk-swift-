@@ -40,7 +40,7 @@ let package = Package(
         name: "Action",
         dependencies: [ .product(name: "nimbella-sdk", package: "nimbella-sdk") ],
         path: ".",
-        exclude: [ "build.sh" ]
+        exclude: [ "build.sh", "sim-build" ]
       )
     ]
 )
