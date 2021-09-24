@@ -11,7 +11,44 @@ As of this writing
 
 ## Instructions for use in Nimbella actions.
 
-To be provided once the SDK is usable in production.
+To use the SDK you must structure your Swift action code as a [Swift Package Manager](https://swift.org/package-manager) package.   This requires a source file called `Package.swift` and a peer directory called `Sources` in which the actual Swift source of your action will be found.  The main source file of your action must be `main.swift` (you can have additional source files).  The `Package.swift` file should resemble the following.
+
+```
+import PackageDescription
+
+// The following is temporary until the PR for the Swift SDK is merged. 
+let repo = "https://github.com/joshuaauerbachwatson/nimbella-sdk-swift.git"
+let branch = "dev"
+// After merge:
+// let repo = "https://github.com/nimbella/nimbella-sdk-swift.git"
+// let branch = "master"
+
+let package = Package(
+    name: "Action",
+    // The platform designation helps with testing on a laptop.  The actual runtime is Linux and does not need to be declared.
+    platforms: [.macOS("10.15")],
+    products: [
+      .executable(
+        name: "Action",
+        targets:  ["Action"]
+      )
+    ],
+    dependencies: [
+        .package(name: "nimbella-sdk", url: "\(repo)", .branch("\(branch)"))
+    ],
+    targets: [
+      .executableTarget(
+        name: "Action",
+        dependencies: [ .product(name: "nimbella-sdk", package: "nimbella-sdk") ],
+        path: ".",
+        exclude: [ "build.sh", "sim-build" ]
+      )
+    ]
+)
+```
+You may have additional dependencies depending on what your action does.
+
+In the code of your action, where you want to use the capabilities of the SDK
 
 ## Building the code
 
