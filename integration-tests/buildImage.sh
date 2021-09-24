@@ -13,8 +13,9 @@
 #
 
 # This script builds a specialized docker image which in which the "remote" builds for
-# the integration tests can be run.  This is a workaround, because actual remote builds
-# have been terminating in an abrupt and unexplained failure.
+# the integration tests can be run.  This was historically a workaround when remote builds
+# were terminating abruptly.  The script should still be useful for local testing of a
+# new version of the SDK, part of which now resides in the Swift runtime.
 #
 # The script and Dockerfile may also be adapted to run builds of non-test actions that
 # use the SDK

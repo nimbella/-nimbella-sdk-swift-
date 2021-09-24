@@ -13,10 +13,7 @@
 #
 
 # This script installs a single action, using the docker image created by 'buildImage.sh'.
-# This is a workaround, because actual remote builds have been terminating in an abrupt
-# and unexplained failure.
-#
-# The script may also be adapted to run builds of non-test actions that use the SDK.
+# See that script for more information.
 #
 # The 'buildImage.sh' script must previously have been run with the latest versions
 # of the test code.
