@@ -15,7 +15,7 @@
  */
 
 import Foundation
-import NIO
+import NIOCore
 
 // Errors that can occur in the Nimbella Storage SDK
 public enum NimbellaObjectError : Error, Equatable {
