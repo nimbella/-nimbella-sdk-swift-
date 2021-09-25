@@ -50,6 +50,7 @@ public func ensureLibrary(_ name: String) throws {
         do {
             var attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
             attributes[.posixPermissions] = NSNumber(0o777)
+            attributes.removeValue(forKey: .referenceCount)
             try FileManager.default.setAttributes(attributes, ofItemAtPath: fileURL.path)
             try FileManager.default.moveItem(at: fileURL, to: savedURL)
         } catch {
