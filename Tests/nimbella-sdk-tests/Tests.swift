@@ -13,6 +13,7 @@ class BasicTests : XCTestCase {
             XCTFail("\(error)")
         }
     }
+
     func testRedis() {
         self.continueAfterFailure = false
         do {
@@ -62,5 +63,25 @@ class BasicTests : XCTestCase {
         } catch {
             XCTFail("\(error)")
         }
+    }
+
+    // Rename this test to run it.  It is potentially destructive since it writes into /usr/local/lib.
+    // Also the tests can give false positives if the libs are already there.
+    func not_testEnsureLibrary() {
+        let env = ProcessInfo.processInfo.environment
+        guard let from = env["NIMBELLA_SDK_LIBS"] else {
+            XCTFail("Library location is not provided")
+            return
+        }
+        do {
+            try ensureLibrary("libnimbella-gcs.so", from)
+            try ensureLibrary("libnimbella-s3.so", from)
+            try ensureLibrary("libnimbella-redis.so", from)
+        } catch {
+            XCTFail("\(error)")
+        }
+        XCTAssert(FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-gcs.so"))
+        XCTAssert(FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-s3.so"))
+        XCTAssert(FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-redis.so"))
     }
 }

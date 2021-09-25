@@ -19,16 +19,38 @@ import Foundation
 // Utility function to ensure the presence of a dynamic library (or replace the one in the container
 // with a newer one).
 
-func ensureLibrary(_ name: String, _ from: String) throws {
+public func ensureLibrary(_ name: String, _ from: String) throws {
     guard let fromURL = URL(string: from + "/" + name) else {
-        throw NimbellaError.incorrectInput("arguments '\(name)' and/or '\(from)'")
+        throw NimbellaError.incorrectInput("args '\(name)' and/or '\(from)'")
     }
-    // Warning: the following requires the contents of the library to fit in memory
-    guard let libData = NSData(contentsOf: fromURL) else {
-        throw NimbellaError.couldNotOpen(fromURL.absoluteString)
+    var err: Error? = nil
+    let sem = DispatchSemaphore.init(value: 0)
+    let downloadTask = URLSession.shared.downloadTask(with: fromURL) {
+        u, r, e in
+        defer { sem.signal() }
+        err = e
+        if e != nil {
+            return
+        }
+        guard let fileURL = u, let response = r as? HTTPURLResponse,
+              response.statusCode >= 200, response.statusCode <= 299 else {
+            err = NimbellaError.couldNotLoadProvider(fromURL.absoluteString)
+            return
+        }
+        let savedURL = URL(fileURLWithPath: "/usr/local/lib/" + name)
+        try? FileManager.default.removeItem(at: savedURL)
+        do {
+            var attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+            attributes[.posixPermissions] = NSNumber(0o777)
+            try FileManager.default.setAttributes(attributes, ofItemAtPath: fileURL.path)
+            try FileManager.default.moveItem(at: fileURL, to: savedURL)
+        } catch {
+            err = error
+        }
     }
-    let dest = "/usr/local/lib/" + name
-    if !libData.write(toFile: dest, atomically: true) {
-        throw NimbellaError.couldNotLoadProvider(fromURL.absoluteString)
+    downloadTask.resume()
+    sem.wait()
+    if let toThrow = err {
+        throw toThrow
     }
 }
