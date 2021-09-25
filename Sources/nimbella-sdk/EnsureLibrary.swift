@@ -15,6 +15,9 @@
  */
 
 import Foundation
+#if (Linux)
+import FoundationNetworking
+#endif
 
 // Utility function to ensure the presence of a dynamic library (or replace the one in the container
 // with a newer one).
