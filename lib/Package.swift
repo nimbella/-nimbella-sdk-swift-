@@ -28,7 +28,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
-				.package(name: "nimbella-sdk", path: "..")
+		.package(name: "nimbella-sdk", path: "..")
     ],
     targets: [
         .target(name: "nimbella-redis", dependencies: ["RediStack", "nimbella-sdk"]),

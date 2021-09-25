@@ -149,7 +149,7 @@ class S3RemoteFile : RemoteFile {
             var content = output.body?.asData() ?? Data()
             if let dest = options?.destination {
                 guard let fh = FileHandle(forWritingAtPath: dest) else {
-                    return self.eventLoop.makeFailedFuture(NimbellaObjectError.couldNotOpen(dest))
+                    return self.eventLoop.makeFailedFuture(NimbellaError.couldNotOpen(dest))
                 }
                 fh.write(content)
                 try? fh.close()
@@ -161,7 +161,7 @@ class S3RemoteFile : RemoteFile {
 
     func getSignedUrl(_ options: SignedUrlOptions) -> EventLoopFuture<String> {
         if (options.version != .v4) {
-            let err = NimbellaObjectError.incorrectInput("Signing version v4 is required for s3")
+            let err = NimbellaError.incorrectInput("Signing version v4 is required for s3")
             return eventLoop.makeFailedFuture(err)
         }
         let region = client.config.region.rawValue
@@ -237,12 +237,12 @@ class S3Client : StorageClient {
             return self.s3.deleteObjects(deleteReq)
         }
         return deleteResult.flatMapThrowing {r in
-            let errors = (r.errors ?? []).map { NimbellaObjectError.notDeleted($0.message ?? "unknown reason")}
+            let errors = (r.errors ?? []).map { NimbellaError.notDeleted($0.message ?? "unknown reason")}
             let successes = (r.deleted ?? []).map { $0.key ?? "" } // keys actually expected to be present always
             if (errors.count == 0) {
                 return successes
             } else {
-                let error = NimbellaObjectError.multiple(errors)
+                let error = NimbellaError.multiple(errors)
                 throw error
             }
         }
@@ -251,7 +251,7 @@ class S3Client : StorageClient {
     func upload(_ path: String, _ options: UploadOptions?) -> EventLoopFuture<Void> {
         let fh = FileHandle(forReadingAtPath: path)
         guard let data = fh?.availableData else {
-            return eventLoop.makeFailedFuture(NimbellaObjectError.couldNotOpen(path))
+            return eventLoop.makeFailedFuture(NimbellaError.couldNotOpen(path))
         }
         let key = options?.destination ?? path
         // Set public read iff web bucket
@@ -299,7 +299,7 @@ class S3Provider : StorageProvider {
         let storageKey = StorageKey(credentials)
         guard let keyId = storageKey.credentials.accessKeyId,
               let secret = storageKey.credentials.secretAccessKey else {
-            throw NimbellaObjectError.insufficientCredentials
+            throw NimbellaError.insufficientCredentials
         }
         let client = AWSClient(credentialProvider: .static(accessKeyId: keyId, secretAccessKey: secret), httpClientProvider: .createNew)
         let s3 = S3(client: client, region: storageKey.region, endpoint: storageKey.endpoint)
@@ -310,7 +310,7 @@ class S3Provider : StorageProvider {
                 url = computeBucketUrl(storageKey.endpoint, bucketName)
             }
             if (url == nil) {
-                throw NimbellaObjectError.noValidURL
+                throw NimbellaError.noValidURL
             }
           return S3Client(s3, bucketName, url)
         }

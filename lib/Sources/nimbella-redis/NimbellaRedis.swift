@@ -26,10 +26,10 @@ import nimbella_sdk
 public func redis() throws -> KeyValueClient {
     let env = ProcessInfo.processInfo.environment
     guard let redisHost = env["__NIM_REDIS_IP"], !redisHost.isEmpty else {
-        throw NimbellaKeyValueError.noKeyValueStore
+        throw NimbellaError.noKeyValueStore
     }
     guard let redisPassword = env["__NIM_REDIS_PASSWORD"], !redisPassword.isEmpty else {
-        throw NimbellaKeyValueError.noKeyValueStore
+        throw NimbellaError.noKeyValueStore
     }
     let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     let eventLoop = eventLoopGroup.next()

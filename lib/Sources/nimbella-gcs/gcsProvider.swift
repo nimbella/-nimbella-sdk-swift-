@@ -19,11 +19,11 @@ import nimbella_sdk
 
 class GCSProvider : StorageProvider {
     func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary) throws ->         StorageClient {
-        throw NimbellaObjectError.notImplemented("getClient")
+        throw NimbellaError.notImplemented("getClient")
     }
 
     func prepareCredentials(_ original: NSDictionary) throws -> NSDictionary {
-        throw NimbellaObjectError.notImplemented("PrepareCredentials")
+        throw NimbellaError.notImplemented("PrepareCredentials")
     }
 
     var identifier: String = "@nimbella/storage-gcs"

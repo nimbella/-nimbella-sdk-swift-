@@ -22,15 +22,15 @@ import Foundation
 public func storageClient(_ web: Bool) throws -> StorageClient {
     let env = ProcessInfo.processInfo.environment
     guard let rawCreds = env["__NIM_STORAGE_KEY"], !rawCreds.isEmpty else {
-        throw NimbellaObjectError.noObjectStoreCredentials
+        throw NimbellaError.noObjectStoreCredentials
     }
     guard let namespace = env["__OW_NAMESPACE"], let apiHost = env["__OW_API_HOST"],
           !namespace.isEmpty, !apiHost.isEmpty else {
-        throw NimbellaObjectError.insufficientEnvironment
+        throw NimbellaError.insufficientEnvironment
     }
     guard let credsData = rawCreds.data(using: .utf8),
           let parsedCreds = try? JSONSerialization.jsonObject(with: credsData, options: []) as? NSDictionary else {
-        throw NimbellaObjectError.corruptObjectStoreCredentials(rawCreds)
+        throw NimbellaError.corruptObjectStoreCredentials(rawCreds)
     }
     let provider = parsedCreds["provider"] as? String ?? "@nimbella/storage-gcs"
     let providerImpl = try getStorageProvider(provider)
