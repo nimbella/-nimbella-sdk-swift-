@@ -19,9 +19,14 @@ import Foundation
 // Utility function to ensure the presence of a dynamic library (or replace the one in the container
 // with a newer one).
 
-public func ensureLibrary(_ name: String, _ from: String) throws {
-    guard let fromURL = URL(string: from + "/" + name) else {
-        throw NimbellaError.incorrectInput("args '\(name)' and/or '\(from)'")
+public func ensureLibrary(_ name: String) throws {
+    let env = ProcessInfo.processInfo.environment
+    guard let from = env["NIMBELLA_SDK_LIBS"] else {
+        throw NimbellaError.incorrectInput("NIMBELLA_SDK_LIBS not set")
+    }
+    let libName = "lib\(name).so"
+    guard let fromURL = URL(string: "\(from)/\(libName)") else {
+        throw NimbellaError.incorrectInput("'\(name)' and '\(from)' could not combine to form valid URL")
     }
     var err: Error? = nil
     let sem = DispatchSemaphore.init(value: 0)
@@ -37,7 +42,7 @@ public func ensureLibrary(_ name: String, _ from: String) throws {
             err = NimbellaError.couldNotLoadProvider(fromURL.absoluteString)
             return
         }
-        let savedURL = URL(fileURLWithPath: "/usr/local/lib/" + name)
+        let savedURL = URL(fileURLWithPath: "/usr/local/lib/" + libName)
         try? FileManager.default.removeItem(at: savedURL)
         do {
             var attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
