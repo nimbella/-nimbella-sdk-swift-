@@ -19,6 +19,11 @@ import Foundation
 import FoundationNetworking
 #endif
 
+let settableAttributes: Set<FileAttributeKey> = [
+    .creationDate, .extensionHidden, .groupOwnerAccountID, .groupOwnerAccountName, .hfsCreatorCode, .hfsTypeCode, .immutable, .modificationDate, .ownerAccountID, .ownerAccountName
+    // According to Apple doc. Posix permissions omitted deliberately since we add it explicitly.
+]
+
 // Utility function to ensure the presence of a dynamic library (or replace the one in the container
 // with a newer one).
 
@@ -49,8 +54,10 @@ public func ensureLibrary(_ name: String) throws {
         try? FileManager.default.removeItem(at: savedURL)
         do {
             var attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+            attributes = attributes.filter { key, value in
+                settableAttributes.contains(key)
+            }
             attributes[.posixPermissions] = NSNumber(0o777)
-            attributes.removeValue(forKey: .referenceCount)
             try FileManager.default.setAttributes(attributes, ofItemAtPath: fileURL.path)
             try FileManager.default.moveItem(at: fileURL, to: savedURL)
         } catch {
