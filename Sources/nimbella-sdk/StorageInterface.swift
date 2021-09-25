@@ -17,22 +17,6 @@
 import Foundation
 import NIOCore
 
-// Errors that can occur in the Nimbella Storage SDK
-public enum NimbellaObjectError : Error, Equatable {
-    case notImplemented(String)
-    case noObjectStoreCredentials
-    case corruptObjectStoreCredentials(String)
-    case insufficientEnvironment
-    case noValidURL
-    case insufficientCredentials
-    case notDeleted(String)
-    case multiple([NimbellaObjectError])
-    case incorrectInput(String)
-    case couldNotOpen(String)
-    case noSuchStorageProvider(String)
-    case couldNotLoadProvider(String)
-}
-
 // Metadata that can be set on a file
 public struct SettableFileMetadata {
     public var contentType: String?
@@ -182,7 +166,7 @@ public func getStorageProvider(_ provider: String) throws -> StorageProvider {
         return provider
     }
     guard let libName = providerLibs[provider] else {
-        throw NimbellaObjectError.noSuchStorageProvider(provider)
+        throw NimbellaError.noSuchStorageProvider(provider)
     }
     return try getProvider(libName)
 
@@ -206,5 +190,5 @@ func getProvider(_ name: String) throws -> StorageProvider {
             return provider
         }
     }
-    throw NimbellaObjectError.couldNotLoadProvider(String(format: "%s", dlerror()))
+    throw NimbellaError.couldNotLoadProvider(String(format: "%s", dlerror()))
 }

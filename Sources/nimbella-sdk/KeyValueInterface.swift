@@ -17,13 +17,6 @@
 import Foundation
 import NIOCore
 
-// Errors that can occur in the Nimbella Key value SDK
-public enum NimbellaKeyValueError : Error, Equatable {
-    case notImplemented(String)
-    case noKeyValueStore
-    case couldNotLoadProvider(String)
-}
-
 // The interface to key-value services.  Based on the redis implementation but
 // avoids using redis-specific types.  To access the RediStack client handle
 // (type RedisClient) call getImplementation() and cast the value to RedisClient.
@@ -49,7 +42,7 @@ var clientHandle: KeyValueClient? = nil
 open class KVProviderMaker {
     public init() {}
     open func make() throws -> KeyValueClient {
-        throw NimbellaKeyValueError.notImplemented("key-value provider")
+        throw NimbellaError.notImplemented("key-value provider")
     }
 }
 
@@ -74,5 +67,5 @@ public func keyValueClient() throws -> KeyValueClient {
             return client
         }
     }
-    throw NimbellaKeyValueError.couldNotLoadProvider(String(format: "%s", dlerror()))
+    throw NimbellaError.couldNotLoadProvider(String(format: "%s", dlerror()))
 }
