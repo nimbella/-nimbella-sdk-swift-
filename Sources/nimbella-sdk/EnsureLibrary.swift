@@ -21,6 +21,9 @@ import Foundation
 public func ensureLibrary(_ name: String) throws {
     let env = ProcessInfo.processInfo.environment
     let nimBinary = env["NIM"] ?? "/usr/local/bin/nim"
+    if env["HOME"] == nil || env["HOME"]?.count == 0 {
+        setenv("HOME", "/root", 1)
+    }
     let libName = "lib\(name).so"
     try shell("\(nimBinary) web get \(libName)")
     try shell("chmod +x \(libName)")
