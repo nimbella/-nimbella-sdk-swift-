@@ -34,9 +34,9 @@ func shell(_ command: String) throws {
     task.standardOutput = pipe
     task.standardError = pipe
     task.arguments = ["-c", command]
-    task.launchPath = "/bin/bash"
-    task.currentDirectoryPath = "/usr/local/lib"
-    task.launch()
+    task.executableURL = URL(fileURLWithPath: "/bin/bash")
+    task.currentDirectoryURL = URL(fileURLWithPath: "/usr/local/lib")
+    try task.run()
     task.waitUntilExit()
     if task.terminationStatus != 0 {
         var message = "\(command), rc=\(task.terminationStatus)"
