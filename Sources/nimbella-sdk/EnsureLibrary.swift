@@ -15,58 +15,35 @@
  */
 
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
-
-let settableAttributes: Set<FileAttributeKey> = [
-    .creationDate, .extensionHidden, .groupOwnerAccountID, .groupOwnerAccountName, .hfsCreatorCode, .hfsTypeCode, .immutable, .modificationDate, .ownerAccountID, .ownerAccountName
-    // According to Apple doc. Posix permissions omitted deliberately since we add it explicitly.
-]
 
 // Utility function to ensure the presence of a dynamic library (or replace the one in the container
 // with a newer one).
-
 public func ensureLibrary(_ name: String) throws {
     let env = ProcessInfo.processInfo.environment
-    guard let from = env["NIMBELLA_SDK_LIBS"] else {
-        throw NimbellaError.incorrectInput("NIMBELLA_SDK_LIBS not set")
-    }
+    let nimBinary = env["NIM"] ?? "/usr/local/bin/nim"
     let libName = "lib\(name).so"
-    guard let fromURL = URL(string: "\(from)/\(libName)") else {
-        throw NimbellaError.incorrectInput("'\(name)' and '\(from)' could not combine to form valid URL")
-    }
-    var err: Error? = nil
-    let sem = DispatchSemaphore.init(value: 0)
-    let downloadTask = URLSession.shared.downloadTask(with: fromURL) {
-        u, r, e in
-        defer { sem.signal() }
-        err = e
-        if e != nil {
-            return
+    try shell("\(nimBinary) web get \(libName)")
+    try shell("chmod +x \(libName)")
+}
+
+// Run a shell command in the target directory, throwing on error on non-zero exit.  Adapted from:
+// https://stackoverflow.com/questions/26971240/how-do-i-run-a-terminal-command-in-a-swift-script-e-g-xcodebuild
+func shell(_ command: String) throws {
+    let task = Process()
+    let pipe = Pipe()
+    task.standardOutput = pipe
+    task.standardError = pipe
+    task.arguments = ["-c", command]
+    task.launchPath = "/bin/bash"
+    task.currentDirectoryPath = "/usr/local/lib"
+    task.launch()
+    task.waitUntilExit()
+    if task.terminationStatus != 0 {
+        var message = "\(command), rc=\(task.terminationStatus)"
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        if let output = String(data: data, encoding: .utf8) {
+            message = "\(message), output=\(output)"
         }
-        guard let fileURL = u, let response = r as? HTTPURLResponse,
-              response.statusCode >= 200, response.statusCode <= 299 else {
-            err = NimbellaError.couldNotLoadProvider(fromURL.absoluteString)
-            return
-        }
-        let savedURL = URL(fileURLWithPath: "/usr/local/lib/" + libName)
-        try? FileManager.default.removeItem(at: savedURL)
-        do {
-            var attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
-            attributes = attributes.filter { key, value in
-                settableAttributes.contains(key)
-            }
-            attributes[.posixPermissions] = NSNumber(0o777)
-            try FileManager.default.setAttributes(attributes, ofItemAtPath: fileURL.path)
-            try FileManager.default.moveItem(at: fileURL, to: savedURL)
-        } catch {
-            err = error
-        }
-    }
-    downloadTask.resume()
-    sem.wait()
-    if let toThrow = err {
-        throw toThrow
+        throw NimbellaError.shellFailed(message)
     }
 }

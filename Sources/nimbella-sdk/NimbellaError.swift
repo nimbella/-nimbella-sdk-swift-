@@ -31,5 +31,6 @@ public enum NimbellaError : Error, Equatable {
     case incorrectInput(String)
     case couldNotOpen(String)
     case noSuchStorageProvider(String)
+    case shellFailed(String)
 }
 
