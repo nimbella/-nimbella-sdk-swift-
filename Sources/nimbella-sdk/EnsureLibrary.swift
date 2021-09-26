@@ -20,18 +20,37 @@ import Foundation
 // with a newer one).
 public func ensureLibrary(_ name: String) throws {
     let env = ProcessInfo.processInfo.environment
-    let nimBinary = env["NIM"] ?? "/usr/local/bin/nim"
     if env["HOME"] == nil || env["HOME"]?.count == 0 {
         setenv("HOME", "/root", 1)
     }
+    let nimBinary = env["NIM"] ?? "/usr/local/bin/nim"
+    try ensureCredentials(nimBinary, env)
     let libName = "lib\(name).so"
     try shell("\(nimBinary) web get \(libName)")
     try shell("chmod +x \(libName)")
 }
 
+// Make sure that the credentials are there for the current namespace.  In practice, either
+// they already are (and the function does nothing) or the code is running inside an action,
+// making it possible to bootstrap credentials using 'nim' and the various __OW_* environment
+// variables.  If there are no credentials AND the required environment variables are also
+// missing, the function throws.
+func ensureCredentials(_ nimBinary: String, _ env: [String: String]) throws {
+    let creds = try shell("\(nimBinary) auth list")
+    if creds.count > 0 {
+        return
+    }
+    guard let apiHost = env["__OW_API_HOST"], let auth = env["__OW_API_KEY"] else {
+        throw NimbellaError.insufficientCredentials
+    }
+    try shell("\(nimBinary) auth login --auth \(auth) --apihost \(apiHost)")
+    try shell("\(nimBinary) auth refresh")
+}
+
 // Run a shell command in the target directory, throwing on error on non-zero exit.  Adapted from:
 // https://stackoverflow.com/questions/26971240/how-do-i-run-a-terminal-command-in-a-swift-script-e-g-xcodebuild
-func shell(_ command: String) throws {
+@discardableResult
+func shell(_ command: String) throws -> String {
     let task = Process()
     let pipe = Pipe()
     task.standardOutput = pipe
@@ -41,12 +60,14 @@ func shell(_ command: String) throws {
     task.currentDirectoryURL = URL(fileURLWithPath: "/usr/local/lib")
     try task.run()
     task.waitUntilExit()
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(data: data, encoding: .utf8) ?? ""
     if task.terminationStatus != 0 {
         var message = "\(command), rc=\(task.terminationStatus)"
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        if let output = String(data: data, encoding: .utf8) {
+        if output.count > 0 {
             message = "\(message), output=\(output)"
         }
         throw NimbellaError.shellFailed(message)
     }
+    return output
 }
