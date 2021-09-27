@@ -20,31 +20,16 @@ import Foundation
 // with a newer one).
 public func ensureLibrary(_ name: String) throws {
     let env = ProcessInfo.processInfo.environment
-    if env["HOME"] == nil || env["HOME"]?.count == 0 {
-        setenv("HOME", "/root", 1)
+    guard let host = env["__OW_API_HOST"], let ns = env["__OW_NAMESPACE"] else {
+        throw NimbellaError.insufficientEnvironment
     }
-    let nimBinary = env["NIM"] ?? "/usr/local/bin/nim"
-    try ensureCredentials(nimBinary, env)
+    guard let hostUrl = URL(string: host), let host = hostUrl.host else {
+        throw NimbellaError.incorrectInput(host)
+    }
     let libName = "lib\(name).so"
-    try shell("\(nimBinary) web get \(libName)")
+    let sourceUrl = "https://\(ns)-\(host)/\(libName)"
+    try shell("curl -s -o \(libName) \(sourceUrl)")
     try shell("chmod +x \(libName)")
-}
-
-// Make sure that the credentials are there for the current namespace.  In practice, either
-// they already are (and the function does nothing) or the code is running inside an action,
-// making it possible to bootstrap credentials using 'nim' and the various __OW_* environment
-// variables.  If there are no credentials AND the required environment variables are also
-// missing, the function throws.
-func ensureCredentials(_ nimBinary: String, _ env: [String: String]) throws {
-    let creds = try shell("\(nimBinary) auth list")
-    if creds.count > 0 {
-        return
-    }
-    guard let apiHost = env["__OW_API_HOST"], let auth = env["__OW_API_KEY"] else {
-        throw NimbellaError.insufficientCredentials
-    }
-    try shell("\(nimBinary) auth login --auth \(auth) --apihost \(apiHost)")
-    try shell("\(nimBinary) auth refresh")
 }
 
 // Run a shell command in the target directory, throwing on error on non-zero exit.  Adapted from:
