@@ -28,8 +28,9 @@ public func ensureLibrary(_ name: String) throws {
     }
     let libName = "lib\(name).so"
     let sourceUrl = "https://\(ns)-\(host)/\(libName)"
-    try shell("curl -s -o \(libName) \(sourceUrl)")
+    try shell("curl -s -o \(libName) --fail \(sourceUrl)")
     try shell("chmod +x \(libName)")
+    try shell("mv \(libName) /usr/local/lib")
 }
 
 // Run a shell command in the target directory, throwing on error on non-zero exit.  Adapted from:
