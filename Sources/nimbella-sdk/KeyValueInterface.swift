@@ -49,7 +49,9 @@ open class KVProviderMaker {
 // Obtain the KeyValueClient implementation, dynamically loading it if necessary
 typealias KVProviderStub = @convention(c) () -> UnsafeMutableRawPointer
 public func keyValueClient() throws -> KeyValueClient {
+    print("keyValueClient called")
     if let handle = clientHandle {
+        print("keyValueClient fouhd client handle already loaded")
         return handle
     }
     let env = ProcessInfo.processInfo.environment
@@ -57,12 +59,16 @@ public func keyValueClient() throws -> KeyValueClient {
     let suffix = env["NIMBELLA_SDK_SUFFIX"] ?? ".so"
     let path = "\(prefix)/libnimbella-redis\(suffix)"
     if let modHandle = dlopen(path, RTLD_NOW|RTLD_LOCAL) {
+        print("\(path) was successfully opened")
         defer {
             dlclose(modHandle)
         }
         if let rawProvider = dlsym(modHandle, "loadProvider") {
+            print("'loadProvider' symbol resolved")
             let providerStub = unsafeBitCast(rawProvider, to: KVProviderStub.self)
+            print("symbol pointer cast (unsafely) to KVProviderStub")
             let client = try Unmanaged<KVProviderMaker>.fromOpaque(providerStub()).takeRetainedValue().make()
+            print("called 'make' function to get the actual client handle")
             clientHandle = client
             return client
         }
