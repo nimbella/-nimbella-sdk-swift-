@@ -67,7 +67,11 @@ public func keyValueClient() throws -> KeyValueClient {
             print("'loadProvider' symbol resolved")
             let providerStub = unsafeBitCast(rawProvider, to: KVProviderStub.self)
             print("symbol pointer cast (unsafely) to KVProviderStub")
-            let client = try Unmanaged<KVProviderMaker>.fromOpaque(providerStub()).takeRetainedValue().make()
+            let opaquePointer = providerStub()
+            print("providerStub() was called, returning an opaque pointer")
+            let clientMaker =  Unmanaged<KVProviderMaker>.fromOpaque(opaquePointer).takeRetainedValue()
+            print("opaque pointer cast to a KVProviderMaker")
+            let client = try clientMaker.make()
             print("called 'make' function to get the actual client handle")
             clientHandle = client
             return client
