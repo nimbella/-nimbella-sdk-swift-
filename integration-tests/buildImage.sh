@@ -24,11 +24,18 @@
 # mirroring to the extent possible what Nimbella is running remotely.
 
 pushd redis-lite/packages/test-redis-lite/test
-rm -fr .build Action Package.resolved
+rm -fr .build Action Package.resolved .swiftpm
 popd
 pushd storage-lite/packages/test-storage-lite/test
-rm -fr .build Action Package.resolved
+rm -fr .build Action Package.resolved .swiftpm
+popd
+pushd redis-exec
+rm -fr .build Action Package.resolved .swiftpm
+popd
+pushd storage-exec
+rm -fr .build Action Package.resolved .swiftpm
 popd
 cp ~/.nimbella/credentials.json .
+sed -e '/NIMBELLA_SDK_/d' < ~/.nimbella/swift-sdk-tests.env > swift-sdk-tests.env
 docker build -t swift-sdk-tests .
-rm -f credentials.json
+rm -f credentials.json swift-sdk-tests.env

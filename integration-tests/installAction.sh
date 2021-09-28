@@ -18,6 +18,6 @@
 # The 'buildImage.sh' script must previously have been run with the latest versions
 # of the test code.
 
-docker run -it --entrypoint /bin/bash swift-sdk-tests nim project deploy /root/$1 --verbose-build
+docker run -it --entrypoint /bin/bash swift-sdk-tests nim project deploy /root/$1 --verbose-build --env /root/.nimbella/swift-sdk-tests.env
 
 

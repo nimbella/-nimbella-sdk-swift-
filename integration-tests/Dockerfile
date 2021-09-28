@@ -16,6 +16,10 @@
 FROM action-swift-v5.4
 RUN mkdir /root/.nimbella /root/redis-lite /root/storage-lite
 COPY credentials.json /root/.nimbella
+COPY swift-sdk-tests.env /root/.nimbella
 COPY redis-lite /root/redis-lite
 COPY storage-lite /root/storage-lite
+COPY redis-exec /root/redis-exec
+COPY storage-exec /root/storage-exec
+
 

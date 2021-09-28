@@ -3,3 +3,7 @@ packages:
     actions:
       - name: test
         runtime: swift:default
+        limits:
+          timeout: 30000
+          memory: 768
+ 

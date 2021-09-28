@@ -17,24 +17,33 @@
 
 import Foundation
 import nimbella_sdk
+import DotEnv
 
-func main(args: [String:Any]) -> [String:Any] {
+runThis()
+func runThis() {
     do {
+        let env = ProcessInfo.processInfo.environment
+        let nimbellaDir = env["NIMBELLA_DIR"] ?? "\(env["HOME"]!)/.nimbella"
+        let storageEnvFile = "\(nimbellaDir)/swift-sdk-tests.env"
+        try DotEnv.load(path: storageEnvFile)
         try ensureLibrary("nimbella-s3") // need for this is temporary
         // Initial tests assume that the web bucket contains the expected 404.html
         var client = try storageClient(true)
         let url = client.getURL()
         if (url == nil) {
-            return [ "error": "URL not found for web bucket" ]
+            print("error: URL not found for web bucket")
+            return
         }
         var file = client.file("404.html")
         let result = try file.getMetadata().wait()
         if (result.name != "404.html") {
-            return [ "error":  "Expected file metadata for 404.html but got \(result)" ]
+            print("error: Expected file metadata for 404.html but got \(result)")
+            return
         }
         var contents = String(decoding: try file.download(nil).wait(), as: UTF8.self)
         if (!contents.contains("Nimbella")) {
-            return [ "error":  "contents of 404.html were not as expected" ]
+            print("error: contents of 404.html were not as expected")
+            return
         }
         // Switch to data bucket for some other tests
         client = try storageClient(false)
@@ -43,15 +52,18 @@ func main(args: [String:Any]) -> [String:Any] {
         try file.save(Data(testData.utf8), nil).wait()
         contents = String(decoding: try file.download(nil).wait(), as: UTF8.self)
         if (contents != testData) {
-            return [ "error":  "contents of 'testfile' did not equal '\(testData)'" ]
+            print("error:  contents of 'testfile' did not equal '\(testData)'")
+            return
         }
         try file.delete().wait()
         let exists = try file.exists().wait()
         if (exists) {
-            return [ "error": "file was not deleted as expected" ]
+            print("error: file was not deleted as expected")
+            return
         }
     } catch {
-        return [ "error": "\(error)"]
+        print("error: \(error)")
+        return
     }
-    return [ "success": true ]
+    print("Success")
 }
