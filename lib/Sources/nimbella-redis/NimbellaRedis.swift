@@ -100,8 +100,8 @@ func convertToSeconds(_ amt: TimeAmount?) -> Int {
 
 // Bootstrapping
 public final class Maker : KVProviderMaker {
-    public override func make() -> KeyValueClient? {
-        return try? redis()
+    public override func make() throws -> KeyValueClient {
+        return try redis()
     }
 }
 
