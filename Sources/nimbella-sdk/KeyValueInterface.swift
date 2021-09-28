@@ -74,6 +74,7 @@ public func keyValueClient() throws -> KeyValueClient {
             let client = try clientMaker.make()
             print("called 'make' function to get the actual client handle")
             clientHandle = client
+            print("client handle stored for next time")
             return client
         }
     }
