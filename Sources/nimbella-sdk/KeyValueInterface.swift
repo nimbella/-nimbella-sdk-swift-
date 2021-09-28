@@ -41,8 +41,8 @@ var clientHandle: KeyValueClient? = nil
 // This class is used to aid in dynamic loading and instantiation of the one (redis) key-value provider
 open class KVProviderMaker {
     public init() {}
-    open func make() throws -> KeyValueClient {
-        throw NimbellaError.notImplemented("key-value provider")
+    open func make() -> KeyValueClient? {
+        return nil
     }
 }
 
@@ -71,7 +71,9 @@ public func keyValueClient() throws -> KeyValueClient {
             print("providerStub() was called, returning an opaque pointer")
             let clientMaker =  Unmanaged<KVProviderMaker>.fromOpaque(opaquePointer).takeRetainedValue()
             print("opaque pointer cast to a KVProviderMaker")
-            let client = try clientMaker.make()
+            guard let client = clientMaker.make() else {
+                throw NimbellaError.couldNotOpen("KeyValueClient")
+            }
             print("called 'make' function to get the actual client handle")
             clientHandle = client
             return client
