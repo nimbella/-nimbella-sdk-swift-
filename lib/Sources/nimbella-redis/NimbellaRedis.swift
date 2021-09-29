@@ -23,7 +23,7 @@ import nimbella_sdk
 
 // Retrieve a key-value client handle (which wraps a RedisClient, providing a simplified
 // but limited interface).
-public func redis() throws -> KeyValueClient {
+func redis() throws -> RedisWrapper {
     let env = ProcessInfo.processInfo.environment
     guard let redisHost = env["__NIM_REDIS_IP"], !redisHost.isEmpty else {
         throw NimbellaError.noKeyValueStore
@@ -101,7 +101,9 @@ func convertToSeconds(_ amt: TimeAmount?) -> Int {
 // Bootstrapping
 public final class Maker : KVProviderMaker {
     public override func make() throws -> KeyValueClient {
-        return try redis()
+        let client = try redis()
+        _ = Unmanaged.passRetained(client)
+        return client
     }
 }
 
