@@ -99,16 +99,38 @@ func convertToSeconds(_ amt: TimeAmount?) -> Int {
 }
 
 // Bootstrapping
+
+var savedClient: KeyValueClient? = nil
+var clientMakingError: Error? = nil
+var savedMaker: KVProviderMaker? = nil
+
 public final class Maker : KVProviderMaker {
     public override func make() throws -> KeyValueClient {
-        let client = try redis()
-        _ = Unmanaged.passRetained(client)
-        return client
+        if let err = clientMakingError {
+            throw err
+        }
+        if let client = savedClient {
+            return client
+        }
+        do {
+            let client = try redis()
+            savedClient = client
+            return client
+        } catch {
+            clientMakingError = error
+            throw error
+        }
     }
 }
 
 @_cdecl("loadProvider")
 public func loadProvider() -> UnsafeMutableRawPointer {
     let maker = Maker()
+    savedMaker = maker
+    do {
+        savedClient = try redis()
+    } catch {
+        clientMakingError = error
+    }
     return Unmanaged.passRetained(maker).toOpaque()
 }
