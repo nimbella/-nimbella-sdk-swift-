@@ -132,5 +132,5 @@ public func loadProvider() -> UnsafeMutableRawPointer {
     } catch {
         clientMakingError = error
     }
-    return Unmanaged.passRetained(maker).toOpaque()
+    return Unmanaged<KVProviderMaker>.passRetained(maker).toOpaque()
 }
