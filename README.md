@@ -8,6 +8,10 @@ There is both a unit test (using a local `redis`) and an integration test (using
 
 There are some issues with diagnosing and reporting developer errors, both in the Nimbella builder actions and the Nimbella Swift runtime.  Related PRs are open to address those issues.  Until they are addressed, you may find that developing for the Swift SDK is a little bit painful unless you are lucky enough to write error-free code.
 
+## Temporary: install alternative builder actions
+
+To use the Swift SDK conveniently, you will want to build your Swift actions using `--remote-build`.  Until Nimbella expands the memory available to builder actions, this will fail.  You can circumvent this by installing your own builder actions from https://github.com/joshuaauerbachwatson/remoteBuildAction as described in the README there.
+
 ## Installation and usage
 
 To use the SDK you must structure your Swift code for the Swift Package Manager (with a `Package.swift` and a `Sources` directory containing at least a `main.swift`).   You declare the dependency on the Nimbella SDK in `Package.swift`.
