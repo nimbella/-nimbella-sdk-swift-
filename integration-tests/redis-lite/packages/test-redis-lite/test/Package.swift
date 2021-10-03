@@ -21,7 +21,7 @@
 import PackageDescription
 
 let repo = "https://github.com/joshuaauerbachwatson/nimbella-sdk-swift.git"
-let branch = "dev"
+let branch = "new-pr"
 
 let package = Package(
     name: "Action",
@@ -40,7 +40,7 @@ let package = Package(
         name: "Action",
         dependencies: [ .product(name: "nimbella-key-value", package: "nimbella-sdk") ],
         path: ".",
-        exclude: [ "build.sh" ]
+        exclude: [ "build.sh", "sim-build" ]
       )
     ]
 )
