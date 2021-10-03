@@ -1,5 +1,0 @@
-packages:
-  - name: test-storage-lite
-    actions:
-      - name: test
-        runtime: swift:default
