@@ -116,7 +116,11 @@ class S3RemoteFile : RemoteFile {
         let response = self.client.headObject(req)
         return response.map {
             (result) -> FileMetadata in
-            let lastModDate = ISO8601DateFormatter().string(for: result.lastModified ?? Date(timeIntervalSince1970: 0))
+            // We do not use the newer ISO8601DateFormatter here because it crashes on Linux
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            let lastModDate = formatter.string(for: result.lastModified ?? Date(timeIntervalSince1970: 0))
             return FileMetadata(
                 name: self.name,
                 storageClass: result.storageClass?.rawValue,
