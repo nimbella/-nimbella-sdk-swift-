@@ -32,7 +32,7 @@ public func ensureLibrary(_ name: String) throws {
     try shell("chmod +x \(libName)")
 }
 
-// Run a shell command in the target directory, throwing on error on non-zero exit.  Adapted from:
+// Run a shell command in the target directory, throwing an error on non-zero exit.  Adapted from:
 // https://stackoverflow.com/questions/26971240/how-do-i-run-a-terminal-command-in-a-swift-script-e-g-xcodebuild
 @discardableResult
 func shell(_ command: String) throws -> String {

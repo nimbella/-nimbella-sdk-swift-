@@ -21,18 +21,16 @@ let package = Package(
     name: "nimbella-libs",
     platforms: [.iOS("13.0"), .macOS("10.15")],
     products: [
-        .library(name: "nimbella-redis", type: .dynamic, targets: ["nimbella-redis"]),
         .library(name: "nimbella-s3", type: .dynamic, targets: ["nimbella-s3"]),
         .library(name: "nimbella-gcs", type: .dynamic, targets: ["nimbella-gcs"])
     ],
     dependencies: [
-        .package(url: "https://gitlab.com/mordil/RediStack.git", .branch("master")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
 		.package(name: "nimbella-sdk", path: "..")
     ],
     targets: [
-        .target(name: "nimbella-redis", dependencies: ["RediStack", "nimbella-sdk"]),
-        .target(name: "nimbella-s3", dependencies: ["nimbella-sdk", .product(name: "SotoS3", package: "soto")]),
-        .target(name: "nimbella-gcs", dependencies: ["nimbella-sdk"])
-    ]
-)
+        .target(name: "nimbella-s3", dependencies: [.product(name: "nimbella-object", package: "nimbella-sdk"),
+                                                    .product(name: "SotoS3", package: "soto")]),
+        .target(name: "nimbella-gcs", dependencies: [.product(name: "nimbella-object", package: "nimbella-sdk")])
+        ]
+    )

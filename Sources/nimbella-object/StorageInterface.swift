@@ -180,9 +180,9 @@ func getProvider(_ name: String) throws -> StorageProvider {
     let suffix = env["NIMBELLA_SDK_SUFFIX"] ?? ".so"
     let path = "\(prefix)/lib\(name)\(suffix)"
     if let modHandle = dlopen(path, RTLD_NOW|RTLD_LOCAL) {
-        defer {
-            dlclose(modHandle)
-        }
+        // We do not close this handle.  On mac we can close it but on Linux the load handle must remain
+        // open until we are done using the provider code; in practice this means keeping it open as long
+        // as the process is running.
         if let rawProvider = dlsym(modHandle, "loadProvider") {
             let providerStub = unsafeBitCast(rawProvider, to: StgProviderStub.self)
             let provider = Unmanaged<ProviderMaker>.fromOpaque(providerStub()).takeRetainedValue().make()

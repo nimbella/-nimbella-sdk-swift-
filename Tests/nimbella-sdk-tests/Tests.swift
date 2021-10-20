@@ -1,4 +1,5 @@
-import nimbella_sdk
+import nimbella_object
+import nimbella_key_value
 import XCTest
 import DotEnv
 
@@ -17,13 +18,13 @@ class BasicTests : XCTestCase {
     func testRedis() {
         self.continueAfterFailure = false
         do {
-            let client = try keyValueClient()
-            try client.set("foo", "bar").wait()
-            let result = try client.get("foo").wait()
+            let redisClient = try redis()
+            try redisClient.set("foo", to: "bar").wait()
+            let result = try redisClient.get("foo").wait()?.string
             XCTAssertEqual(result, "bar")
-            let deleted = try client.del(["foo"]).wait()
+            let deleted = try redisClient.delete(["foo"]).wait()
             XCTAssertEqual(deleted, 1)
-            let newResult = try client.get("foo").wait()
+            let newResult = try redisClient.get("foo").wait()
             XCTAssertEqual(newResult, nil)
         } catch {
             XCTFail("\(error)")
