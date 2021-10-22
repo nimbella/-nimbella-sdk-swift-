@@ -2,18 +2,13 @@
 
 A Swift library to interact with [`nimbella.com`](https://nimbella.com) services.  
 
-As of this writing
-- Changes are needed to the Swift runtime and the builder actions to make this SDK usable in production.
-    - These changes are being developed in separate PRs and repos.
-    - The integration tests in `Tests/Integration` are therefore WIP.  They will be completed once more pieces are in place.
-    - However, instructions are given here for running unit tests to verify that the code is working.
-- The object store component works only on accounts in an AWS cloud.  Accounts in Google cloud have only key-value support at this time.
+As of this writing, the object store component works only on accounts in an AWS cloud.  Accounts in a Google cloud have only key-value support.
 
 ## Instructions for use in Nimbella actions.
 
 To use the SDK you must structure your Swift action code as a [Swift Package Manager](https://swift.org/package-manager) package.   This requires a source file called `Package.swift` and a peer directory called `Sources` in which the actual Swift source of your action will be found.  The main source file of your action must be `main.swift` (you can have additional source files).  The `Package.swift` file should resemble the following.
 
-```
+```swift
 import PackageDescription
 
 // The following is temporary until the PR for the Swift SDK is merged. 
@@ -39,7 +34,11 @@ let package = Package(
     targets: [
       .executableTarget(
         name: "Action",
-        dependencies: [ .product(name: "nimbella-sdk", package: "nimbella-sdk") ],
+        // Use either or both of the following, depending on whether you use
+        // the object store or key-value libraries or both.
+        dependencies: [ .product(name: "nimbella-object", package: "nimbella-sdk"),
+                      .product(name: "nimbella-key-value", package: nimbella-sdk")
+        ],
         path: ".",
         exclude: [ "build.sh", "sim-build" ]
       )
@@ -50,22 +49,28 @@ You may have additional dependencies depending on what your action does.
 
 In the code of your action, where you want to use the capabilities of the SDK
 
+```swift
+// Use either or both of the following
+import nimbella_object
+import nimbella_key_value
+```
+
 ## Building the code
 
 You must build the code using the `swift` command line (outside of XCode).  This will ensure that the dynamic libraries are realized in their expected location.
-
 To run the tests under XCode (recommended) you will build the non-dynamic code a second time.
 
 ```
 cd /path/to/clone/of/this/repo
+cd lib
 swift build -c release
 ```
 
-Afterwards, check in `.build/release` for the libraries `libnimbella-gcs.<suffix>`, `libnimbella-redis.<suffix>` and `libnimbella-s3.<suffix>`.  On MacOS, the suffix is `.dylib`.  On Linux, it is `.so`.
+Afterwards, check in `lib/.build/release` for the libraries `libnimbella-gcs.<suffix>` and `libnimbella-s3.<suffix>`.  On MacOS, the suffix is `.dylib`.  On Linux, it is `.so`.
 
 ## Running the Unit Tests
 
-This is verified working on `macOS` 10.15.  I have not tried it on Linux.  I have not used Swift for Windows at all.
+This is verified working on `macOS` 10.15 and on Linux.  I have not used Swift for Windows at all.
 
 If your current namespace is on an AWS system, all unit tests should succeed.  Otherwise, the object store test will fail but the key-value test should succeed.  
 ### Setting up for testing just key-value
@@ -80,7 +85,7 @@ Create the file `~/.nimbella/swift-sdk-tests.env` containing
 
 ```
 NIMBELLA_SDK_SUFFIX=<suffix>
-NIMBELLA_SDK_PREFIX=/path/to/clone/of/this/repo/.build/release
+NIMBELLA_SDK_PREFIX=/path/to/clone/of/this/repo/lib/.build/release
 __NIM_REDIS_IP=localhost
 __NIM_REDIS_PASSWORD=<your-choice>
 ```
@@ -113,9 +118,13 @@ XCode 12.x is assumed in the following.  I have XCode 12.5.1.
 
 Just open XCode on your clone of this repo (it will be recognized as an XCode project).  The package manager should incorporate the dependencies of the SDK itself and of the unit tests.
 
-Use `Product -> Build` first to ensure that the SDK is built for debug in XCode's preferred location.  This is _in addition_ to building the SDK with `swift build` as described above to ensure that the dynamic libraries are present in the expected place.
+Use `Product -> Build` first to ensure that the SDK is built for debug in XCode's preferred location.  This is _in addition_ to building the `lib` folder with `swift build` as described above to ensure that the dynamic libraries are present in the expected place.
 
 Then use `Product -> Test` to run the unit tests under XCode.
+
+## Integration tests
+
+There are two integration tests, one for object store and one for key-value.  Running these tests requires simulating the effects of several other pending PRs in other repositories.  Instructions will be provided when running the tests becomes more feasible.
 
 ## Support
 
