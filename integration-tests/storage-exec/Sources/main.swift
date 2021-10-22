@@ -34,35 +34,35 @@ func runThis() {
             print("error: URL not found for web bucket")
             return
         }
-				print("url retrieved")
+        print("url retrieved")
         var file = webClient.file("404.html")
         let result = try file.getMetadata().wait()
         if (result.name != "404.html") {
             print("error: Expected file metadata for 404.html but got \(result)")
             return
         }
-				print("404.html metadata retrieved")
+        print("404.html metadata retrieved")
         var contents = String(decoding: try file.download(nil).wait(), as: UTF8.self)
         if (!contents.contains("Nimbella")) {
             print("error: contents of 404.html were not as expected")
             return
         }
-				print("404.html contents retrieved")
+        print("404.html contents retrieved")
         // Switch to data bucket for some other tests
         let dataClient = try storageClient(false)
-				print("Switched to data bucket")
+        print("Switched to data bucket")
         let testData = "this is a test"
         file = dataClient.file("testfile")
         try file.save(Data(testData.utf8), nil).wait()
-				print("Uploaded to testfile")
+        print("Uploaded to testfile")
         contents = String(decoding: try file.download(nil).wait(), as: UTF8.self)
         if (contents != testData) {
             print("error:  contents of 'testfile' did not equal '\(testData)'")
             return
         }
-				print("Downloaded and verified testfile contents")
+        print("Downloaded and verified testfile contents")
         try file.delete().wait()
-				print("Deleted testfile")
+        print("Deleted testfile")
         let exists = try file.exists().wait()
         if (exists) {
             print("error: file was not deleted as expected")
