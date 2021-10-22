@@ -205,10 +205,6 @@ class S3Client : StorageClient {
         self.url = url
     }
 
-    deinit {
-        try? self.s3.client.syncShutdown()
-    }
-
     func getURL() -> String? {
         return url
     }
@@ -297,15 +293,22 @@ class S3Client : StorageClient {
 }
 
 // The S3Provider definition.  Based on similar code in the nodejs SDK (with appropriate translation from
-// TypeScript to Swift).
+// TypeScript to Swift).  Note: it is important that only one instance of this class exist in a process.
+// If this is not done, there can be more than one AWSClient running sharing the same EventLoop and that
+// can cause problems if a StorageClient instance goes out of scope and drives cleanup for that EventLoop.
+// The single-instance property is not established in this source file but rather in the static part of the
+// SDK, which maintains a cache of loaded StorageProvider instances.
 class S3Provider : StorageProvider {
-    func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary) throws ->         StorageClient {
+    var awsClient: AWSClient? = nil // Cache one (1) AWSClient per provider, shared by all handles
+    func getClient(_ namespace: String, _ apiHost: String, _ web: Bool, _ credentials: NSDictionary)
+            throws -> StorageClient {
         let storageKey = StorageKey(credentials)
         guard let keyId = storageKey.credentials.accessKeyId,
               let secret = storageKey.credentials.secretAccessKey else {
             throw NimbellaError.insufficientCredentials
         }
-        let client = AWSClient(credentialProvider: .static(accessKeyId: keyId, secretAccessKey: secret), httpClientProvider: .createNew)
+        let client = awsClient ?? AWSClient(credentialProvider: .static(accessKeyId: keyId, secretAccessKey: secret), httpClientProvider: .createNew)
+        awsClient = client
         let s3 = S3(client: client, region: storageKey.region, endpoint: storageKey.endpoint)
         let bucketName = computeBucketStorageName(apiHost, namespace, web)
         if (web) {
@@ -320,6 +323,13 @@ class S3Provider : StorageProvider {
         }
 
         return S3Client(s3, bucketName)
+    }
+
+    // Soto insists we shutdown explicitly before letting the AWSClient go out of scope.  In practice, since this
+    // class is single-instance, maintained by a static table in the static part of the SDK, this is unlikely
+    // to be called until process termination.
+    deinit {
+        try? awsClient?.syncShutdown()
     }
 
     func prepareCredentials(_ original: NSDictionary) throws -> NSDictionary {
