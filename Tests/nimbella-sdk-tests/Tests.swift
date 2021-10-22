@@ -70,19 +70,15 @@ class BasicTests : XCTestCase {
     func testEnsureLibrary() {
         try? FileManager.default.removeItem(atPath: "/usr/local/lib/libnimbella-gcs.so")
         try? FileManager.default.removeItem(atPath: "/usr/local/lib/libnimbella-s3.so")
-        try? FileManager.default.removeItem(atPath: "/usr/local/lib/libnimbella-redis.so")
         XCTAssert(!FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-gcs.so"))
         XCTAssert(!FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-s3.so"))
-        XCTAssert(!FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-redis.so"))
         do {
             try ensureLibrary("nimbella-gcs")
             try ensureLibrary("nimbella-s3")
-            try ensureLibrary("nimbella-redis")
         } catch {
             XCTFail("\(error)")
         }
         XCTAssert(FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-gcs.so"))
         XCTAssert(FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-s3.so"))
-        XCTAssert(FileManager.default.fileExists(atPath: "/usr/local/lib/libnimbella-redis.so"))
     }
 }

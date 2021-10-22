@@ -4,6 +4,6 @@ packages:
       - name: test
         runtime: swift:default
         limits:
-          timeout: 30000
+          timeout: 300000
           memory: 768
  

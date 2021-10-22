@@ -17,6 +17,12 @@
 #
 # The 'buildImage.sh' script must previously have been run with the latest versions
 # of the test code.
+#
+# It should not necessary to use this script to build actions: by design, a deployer remote
+# build should build them.  However, historically, the builder actions for Swift do not
+# run with enough memory to complete successfully.  You can circumvent that by installing your
+# own builder actions as described in https://github.com/joshuaauerbachwatson/remoteBuildAction.
+# Alternatively, you can continue to use this script.
 
 docker run -it --entrypoint /bin/bash swift-sdk-tests nim project deploy /root/$1 --verbose-build --env /root/.nimbella/swift-sdk-tests.env
 

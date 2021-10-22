@@ -39,7 +39,7 @@ let package = Package(
     targets: [
       .executableTarget(
         name: "Action",
-        dependencies: [ "DotEnv", .product(name: "nimbella-sdk", package: "nimbella-sdk") ],
+        dependencies: [ "DotEnv", .product(name: "nimbella-object", package: "nimbella-sdk") ],
         path: "."
       )
     ]

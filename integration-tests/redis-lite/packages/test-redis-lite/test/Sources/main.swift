@@ -15,25 +15,24 @@
  * limitations under the License.
  */
 
-import nimbella_sdk
+import nimbella_key_value
 
 func main(args: [String:Any]) -> [String:Any] {
     do {
-        try ensureLibrary("nimbella-redis") // need for this is temporary
-        _ = try keyValueClient()
-//        try client.set("foo", "bar").wait()
-//        let result = try client.get("foo").wait()
-//        if (result != "bar") {
-//            return [ "error": "Result of get was not 'bar'" ]
-//        }
-//        let deleted = try client.del(["foo"]).wait()
-//        if (deleted != 1) {
-//            return [ "error": "result of delete was not '1'" ]
-//        }
-//        let newResult = try client.get("foo").wait()
-//        if (newResult != nil) {
-//            return [ "error": "delete did not have the desired effect" ]
-//        }
+        let redisClient = try redis()
+        try redisClient.set("foo", to: "bar").wait()
+        let result = try redisClient.get("foo").wait()?.string
+        if (result != "bar") {
+            return [ "error": "Result of get was not 'bar'" ]
+        }
+        let deleted = try redisClient.delete(["foo"]).wait()
+        if (deleted != 1) {
+            return [ "error": "result of delete was not '1'" ]
+        }
+        let newResult = try redisClient.get("foo").wait()
+        if (newResult != nil) {
+            return [ "error": "delete did not have the desired effect" ]
+        }
     } catch {
         return [ "error": "\(error)"]
     }

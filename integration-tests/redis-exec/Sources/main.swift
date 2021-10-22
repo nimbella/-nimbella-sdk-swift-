@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import nimbella_sdk
+import nimbella_key_value
 import DotEnv
 import Foundation
 
@@ -26,24 +26,22 @@ func runThis() {
         let nimbellaDir = env["NIMBELLA_DIR"] ?? "\(env["HOME"]!)/.nimbella"
         let storageEnvFile = "\(nimbellaDir)/swift-sdk-tests.env"
         try DotEnv.load(path: storageEnvFile)
-        try ensureLibrary("nimbella-redis") // need for this is temporary
-        print("nimbella-redis library downloaded")
-        let client = try keyValueClient()
+        let redisClient = try redis()
         print("client created")
-        try client.set("foo", "bar").wait()
+        try redisClient.set("foo", to: "bar").wait()
         print("foo set to bar")
-        let result = try client.get("foo").wait()
+        let result = try redisClient.get("foo").wait()?.string
         if (result != "bar") {
             print("error: result of get was not 'bar'")
             return
         }
         print("value retrieved successfully")
-        let deleted = try client.del(["foo"]).wait()
+        let deleted = try redisClient.delete(["foo"]).wait()
         if (deleted != 1) {
             print("error: result of delete was not '1'")
             return
         }
-        let newResult = try client.get("foo").wait()
+        let newResult = try redisClient.get("foo").wait()
         if (newResult != nil) {
             print("error: delete did not have the desired effect")
             return

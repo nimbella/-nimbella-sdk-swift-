@@ -16,7 +16,7 @@
  */
 
 import Foundation
-import nimbella_sdk
+import nimbella_object
 
 func main(args: [String:Any]) -> [String:Any] {
     do {

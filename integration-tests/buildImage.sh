@@ -13,12 +13,9 @@
 #
 
 # This script builds a specialized docker image which in which the "remote" builds for
-# the integration tests can be run.  This was historically a workaround when remote builds
-# were terminating abruptly.  The script should still be useful for local testing of a
-# new version of the SDK, part of which now resides in the Swift runtime.
-#
-# The script and Dockerfile may also be adapted to run builds of non-test actions that
-# use the SDK
+# the integration tests can be run.  This is a workaround as long as the builder
+# action for Swift is running with insufficient memory and you don't want to field
+# your own builder actions.
 #
 # A docker daemon must be installed an you must have a local action-swift-v5.4 available,
 # mirroring to the extent possible what Nimbella is running remotely.
